@@ -79,16 +79,19 @@ public class Client implements Runnable{
             byte[] endRegion = "</File>\r\n".getBytes();
             try{
                 File inputFile = new File(zipfile(pathToFile));
+
+                requestBody.write(startRegion,0,startRegion.length);
+                Files.copy(inputFile.toPath(),requestBody);
+                requestBody.write(endRegion,0,endRegion.length);
+/* 
                 BufferedInputStream bis = new BufferedInputStream(new FileInputStream(inputFile));
                 
                 byte[] buffer = new byte[1024];
                 int len;
-                requestBody.write(startRegion,0,startRegion.length);
                 while((len=bis.read())>0){
                     requestBody.write(buffer,0,len);
                 }
-                requestBody.write(endRegion,0,endRegion.length);
-                bis.close();
+                bis.close(); */
             }catch(Exception e){
                 System.err.println("Buffered input stream failure");
             }
@@ -310,6 +313,5 @@ public class Client implements Runnable{
     }
 
     //#endregion taskManagement
-
-    //#region 
+ 
 }

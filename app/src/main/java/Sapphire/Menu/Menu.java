@@ -12,9 +12,8 @@ public class Menu implements Runnable{
     
     public Boolean shutdown = false;
     Client mc;
-    public Menu(StringReader sr){
-        
-        mc = new Client(sr);
+    public Menu(Client client){
+        mc = client;
     }
 
     public void run(){

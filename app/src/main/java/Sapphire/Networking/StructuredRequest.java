@@ -1,3 +1,5 @@
+/* Possibly unused file, if still unused by release, remove from project */
+
 package Sapphire.Networking;
 
 import java.util.regex.*;
