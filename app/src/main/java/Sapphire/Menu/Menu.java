@@ -56,6 +56,7 @@ public class Menu implements Runnable{
         System.out.println("Welcome to the server's GUI");
         boolean printMenu = true;
         while(true){
+            if(Thread.currentThread().isInterrupted()) return;
             if(printMenu){    
                 clearScreen();
                 System.out.println("Enter the number of your action:");
@@ -102,6 +103,7 @@ public class Menu implements Runnable{
         /*  */
         boolean printMenu = true;
         while(true){
+            if(Thread.currentThread().isInterrupted()) return;
             if(printMenu){
                 clearScreen();
                 System.out.println("Enter the number of your action:");
@@ -147,6 +149,7 @@ public class Menu implements Runnable{
         String localName = "";
         clearScreen();
         while(true){
+            if(Thread.currentThread().isInterrupted()) return;
             System.out.println("What device would you like to pull from?");
             // display all 
             String sdeviceID = getUserInput();
@@ -192,6 +195,7 @@ public class Menu implements Runnable{
         String desinationName = "";
         clearScreen();
         while(true){
+            if(Thread.currentThread().isInterrupted()) return;
             System.out.println("What device would you like to send to?");
             // display all 
             String sdeviceID = getUserInput();

@@ -2,15 +2,14 @@
 package Sapphire;
 
 import java.io.FileNotFoundException;
-import java.nio.charset.CoderResult;
 
 import Sapphire.Menu.*;
 
 public class MainController {
-    private static Client client;
-    private static Menu menu;
+    private Client client;
+    private Menu menu;
     
-    public static boolean init(){
+    private boolean init(){
         try{
             client = new Client(new StringReader());
             menu = new Menu(client);
@@ -21,7 +20,7 @@ public class MainController {
         return true;
     }
 
-    public static void main(String[] args) {
+    private void loop(){
         if(!init()){
             System.err.println("unable to start client, make sure everything is setup correctly.");
             return;
@@ -34,7 +33,16 @@ public class MainController {
                 Thread.sleep(2500);
             } catch (Exception e) {
                 System.err.println("Error: "+e.getMessage());
+                thread.interrupt();
+                break;
             }
+        }
+        System.out.println("shutting down");
+    }
+    public static void main(String[] args) {
+        MainController mc = new MainController();
+        if(mc.init()){
+            mc.loop();
         }
     }
 }

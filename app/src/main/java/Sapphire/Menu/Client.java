@@ -6,17 +6,16 @@ import java.net.*;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.zip.*;
-
-
 import Sapphire.Networking.StructuredResponse;
 //#endregion imports
 
-public class Client implements Runnable{
+public class Client{
     //#region init
     String authToken;
     String temporaryFilePath;
     String externalDirectoryFilesPath;
     boolean shutdown = false;
+    boolean connected = false;
     String authorizedDirectories;
     String serverURL;
 
@@ -31,14 +30,6 @@ public class Client implements Runnable{
         externalDirectoryFilesPath = sr.getString("ExternalDirectoryFilesPath");
         temporaryFilePath = sr.getString("temporaryFilePath");
         directories = new HashMap<Integer,String>();
-    }
-    public void run(){
-        while(!shutdown){
-            update();
-            try{
-                Thread.sleep(1000); //update every second
-            }catch(Exception e){}
-        }
     }
 
     //#endregion init
@@ -206,6 +197,11 @@ public class Client implements Runnable{
     public void update(){
         
         StructuredResponse sRes = sendRequest(authToken, -1,-1, null); //writes file(if any) to local storage and returns path to temporary file under file_location
+        if(sRes==null){
+            connected = false;
+            return;
+        }
+        connected = true;
         String taskName = sRes.regions.get("Task");
         String regionBody = null;
         switch(taskName){
