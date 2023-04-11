@@ -12,6 +12,7 @@ import Sapphire.Networking.StructuredResponse;
 public class Client{
     //#region init
     String authToken;
+    int temporaryFileID = 0;
     String temporaryFilePath;
     String externalDirectoryFilesPath;
     boolean shutdown = false;
@@ -36,10 +37,9 @@ public class Client{
 
     //#region helpers
     class RequestBuilder{
-        private static int temporaryFileID = 0;
         File temporaryFile;
         BufferedOutputStream requestBody;
-        RequestBuilder(){
+        RequestBuilder(int temporaryFileID){
             temporaryFile = new File(temporaryFilePath+"requestBuilder"+temporaryFileID+".tmp");
             try{
                 temporaryFile.createNewFile();
@@ -216,7 +216,7 @@ public class Client{
                         return;
                     }
                     unzipFile(regionBody,temporaryFile);
-                    RequestBuilder rb = new RequestBuilder();
+                    RequestBuilder rb = new RequestBuilder(temporaryFileID++);
                     rb.addRegion("confirmation",regionBody);
                     //send confirmation;
                     sendRequest(serverURL+"/file_transfer/compliance", sRes.taskID, -1, rb.build());
@@ -224,7 +224,7 @@ public class Client{
                 }else if((regionBody = sRes.regions.get("requested_file_path"))!=null){
                     //zip file at location and send to server
                     if((new File(regionBody).exists())){
-                        RequestBuilder rb = new RequestBuilder();
+                        RequestBuilder rb = new RequestBuilder(temporaryFileID++);
                         try{
                             rb.addfile(regionBody);
                         }catch(Exception e){
@@ -252,7 +252,7 @@ public class Client{
             case "Directory":
                 if((regionBody = sRes.regions.get("directory_request"))!=null){
                     DirectoryWalker dw = new DirectoryWalker(authorizedDirectories);
-                    RequestBuilder rb = new RequestBuilder();
+                    RequestBuilder rb = new RequestBuilder(temporaryFileID++);
                     String fullDir = "";
                     for(String dir:dw.fileStructure){
                         fullDir+=dir+"\n";
@@ -286,7 +286,7 @@ public class Client{
     }
     
     public void sendFile(int destinationID, String destinationPath, String pathToFile){
-        RequestBuilder rb = new RequestBuilder();
+        RequestBuilder rb = new RequestBuilder(temporaryFileID++);
         rb.addRegion("final_path", destinationPath);
         rb.addfile(pathToFile);
         StructuredResponse response = sendRequest(serverURL+"/file_transfer/request",-1 ,destinationID, rb.build());
@@ -294,7 +294,7 @@ public class Client{
     }
     
     public void pullFile(int targetID, String filePath, String finalPath){
-        RequestBuilder rb = new RequestBuilder();
+        RequestBuilder rb = new RequestBuilder(temporaryFileID++);
         rb.addRegion("file_location", filePath);
         rb.addRegion("file_path", finalPath);
         StructuredResponse response = sendRequest(serverURL+"/file_transfer/request",-1 ,targetID, rb.build());
@@ -302,7 +302,7 @@ public class Client{
     }
 
     public void startApp(int targetID, String appName){
-        RequestBuilder rb = new RequestBuilder();
+        RequestBuilder rb = new RequestBuilder(temporaryFileID++);
         rb.addRegion("app_name", appName);
         StructuredResponse response = sendRequest(serverURL+"/file_transfer/request",-1 ,targetID, rb.build());
         rb.closeRequest();
