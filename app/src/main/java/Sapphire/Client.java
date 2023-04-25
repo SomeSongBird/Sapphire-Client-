@@ -1,4 +1,4 @@
-package Sapphire.Menu;
+package Sapphire;
 
 //#region imports
 import java.io.*;
@@ -6,18 +6,20 @@ import java.net.*;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.zip.*;
+
+import Sapphire.Utilities.*;
 import Sapphire.Networking.StructuredResponse;
 //#endregion imports
 
 public class Client{
     //#region init
+    public boolean connected = false;
     String authToken;
+    String authorizedDirectory;
     int temporaryFileID = 0;
     String temporaryFilePath;
     String externalDirectoryFilesPath;
     boolean shutdown = false;
-    boolean connected = false;
-    String authorizedDirectories;
     String serverURL;
 
     HashMap<String,String> startableApps; //key = application name, value = startup script
@@ -25,14 +27,41 @@ public class Client{
 
     public Client(Sapphire.StringReader sr){
         // read authToken
-        serverURL = sr.getString("serverIP");
-        authToken = sr.getString("ClientAuthToken");
-        authorizedDirectories = sr.getString("DefaultAuthorizedDirectories");
+        serverURL = sr.getString("ServerIP");
+        authorizedDirectory = sr.getString("DefaultAuthorizedDirectory");
         externalDirectoryFilesPath = sr.getString("ExternalDirectoryFilesPath");
-        temporaryFilePath = sr.getString("temporaryFilePath");
+        temporaryFilePath = sr.getString("TemporaryFilePath");
         directories = new HashMap<Integer,String>();
+        
+        authToken = sr.getString("ClientAuthToken");
+        File authFile = new File(authToken);
+        try{
+            if(!authFile.exists()){
+                authFile.createNewFile();
+                System.out.println("Authorization token not set, create a new token in configuration.");
+            }else{ 
+                authToken = Files.readString(authFile.toPath());
+            }
+        }catch(IOException ioe){
+            System.out.println("lol, idk man");
+        }
+
     }
 
+    public void setAuthToken(String newToken){
+        authToken = newToken;
+        Sapphire.StringReader.writeInput("ClientAuthToken", newToken);
+    }
+    public String getAuthToken(){
+        return authToken;
+    }
+    public void setDirPermissions(String newDir){
+        authorizedDirectory = newDir;
+        Sapphire.StringReader.writeInput("DefaultAuthorizedDirectory", newDir);
+    }
+    public String getDirPermissions(){
+        return authorizedDirectory;
+    }
     //#endregion init
 
     //#region helpers
@@ -251,7 +280,7 @@ public class Client{
             break;
             case "Directory":
                 if((regionBody = sRes.regions.get("directory_request"))!=null){
-                    DirectoryWalker dw = new DirectoryWalker(authorizedDirectories);
+                    DirectoryWalker dw = new DirectoryWalker(authorizedDirectory);
                     RequestBuilder rb = new RequestBuilder(temporaryFileID++);
                     String fullDir = "";
                     for(String dir:dw.fileStructure){

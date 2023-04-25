@@ -3,7 +3,6 @@
 package Sapphire.Networking;
 
 import java.util.regex.*;
-import java.io.*;
 import java.util.Arrays;
 import java.util.HashMap;
 

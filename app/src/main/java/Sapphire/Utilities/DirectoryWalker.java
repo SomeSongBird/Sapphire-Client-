@@ -1,8 +1,8 @@
-package Sapphire.Menu;
+package Sapphire.Utilities;
 
 import java.io.File;
 
-class DirectoryWalker{
+public class DirectoryWalker{
     public String[] fileStructure;
     public DirectoryWalker(String dir_path){
         File[] dir_name = {new File(dir_path)};
