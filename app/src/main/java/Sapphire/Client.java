@@ -34,18 +34,9 @@ public class Client{
         directories = new HashMap<Integer,String>();
         
         authToken = sr.getString("ClientAuthToken");
-        File authFile = new File(authToken);
-        try{
-            if(!authFile.exists()){
-                authFile.createNewFile();
-                System.out.println("Authorization token not set, create a new token in configuration.");
-            }else{ 
-                authToken = Files.readString(authFile.toPath());
-            }
-        }catch(IOException ioe){
-            System.out.println("lol, idk man");
-        }
-
+        if(authToken.equals("")){
+            System.err.println("Authorization token not set, create a new token in configuration.");
+        }  
     }
 
     public void setAuthToken(String newToken){

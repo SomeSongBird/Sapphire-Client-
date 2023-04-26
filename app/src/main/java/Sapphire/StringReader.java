@@ -47,13 +47,15 @@ public class StringReader {
             while(scan.hasNext()){
                 String nextLine = scan.nextLine();
                 String[] seperatedLine = nextLine.split("::");
-                if(seperatedLine[0]==key){
+                //System.out.println(seperatedLine[0]);
+                if(seperatedLine[0].equals(key)){
                     updated = updated.concat(key+"::"+val+"\n");
                 }else{
                     updated = updated.concat(nextLine+"\n");
                 }
             }
             scan.close();
+            //System.out.println(updated);
             Files.writeString(new File(inputfile).toPath(), updated);
         } catch (Exception e) {
             System.err.println("failed to update input file");

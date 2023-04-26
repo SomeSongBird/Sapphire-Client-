@@ -276,9 +276,12 @@ public class Menu implements Runnable{
             switch(input.toLowerCase()){
                 case "new":
                 case "n":
-                    byte[] array = new byte[7]; // length is bounded by 7
-                    new Random().nextBytes(array);
-                    String generatedString = new String(array);
+                    char[] characters = new char[7];
+                    Random r = new Random();
+                    for(int i=0;i<7;i++){
+                        characters[i] = (char)(r.nextInt(126-33)+33);
+                    }
+                    String generatedString = new String(characters);
                     mc.setAuthToken(generatedString);
                     System.out.println("Auth Token : "+mc.getAuthToken());
                     waitForNextKeystroke();
