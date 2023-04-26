@@ -29,7 +29,11 @@ public class StringReader {
             if(nextLine.length()>0){
                 if(nextLine.charAt(0)!='#'){ //basically a comment
                     String[] seperatedLine = nextLine.split("::");
-                    strings.put(seperatedLine[0],seperatedLine[1]);
+                    if(seperatedLine.length==1){
+                        strings.put(seperatedLine[0],"");
+                    }else{
+                        strings.put(seperatedLine[0],seperatedLine[1]);
+                    }
                 }
             }
         }
