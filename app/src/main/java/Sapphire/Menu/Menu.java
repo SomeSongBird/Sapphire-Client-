@@ -62,6 +62,8 @@ public class Menu implements Runnable{
             if(Thread.currentThread().isInterrupted()) return;
             if(printMenu){    
                 clearScreen();
+                String connection = (mc.connected)? "\033[32mConnected \033[0m" : "\033[31mNot Connected\033[0m";
+                System.out.println("Status: \033[");
                 System.out.println("Enter the number of your action:");
                 System.out.println("\t1. Transfer File");
                 System.out.println("\t2. Start Remote Application");
