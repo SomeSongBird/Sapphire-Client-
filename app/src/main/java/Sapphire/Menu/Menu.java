@@ -1,9 +1,8 @@
 package Sapphire.Menu;
 
 //#region imports
-import java.nio.file.Files;
 import java.io.File;
-import java.io.IOException;
+import java.util.HashMap;
 import java.util.Random;
 import java.util.Scanner;
 import Sapphire.*;
@@ -63,7 +62,7 @@ public class Menu implements Runnable{
             if(printMenu){    
                 clearScreen();
                 String connection = (mc.connected)? "\033[32mConnected \033[0m" : "\033[31mNot Connected\033[0m";
-                System.out.println("Status: \033[");
+                System.out.println("Status: "+connection);
                 System.out.println("Enter the number of your action:");
                 System.out.println("\t1. Transfer File");
                 System.out.println("\t2. Start Remote Application");
@@ -138,7 +137,10 @@ public class Menu implements Runnable{
         while(true){
             if(Thread.currentThread().isInterrupted()) return;
             System.out.println("What device would you like to pull from?");
-            // display all 
+            HashMap<Integer,String> clientList = mc.getOtherClients();
+            for(int id : clientList.keySet()){
+                System.out.println("ID: "+id+" | "+clientList.get(id));
+            }
             String sdeviceID = getUserInput();
             if(cancel(sdeviceID)){
                 return;

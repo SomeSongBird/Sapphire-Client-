@@ -23,7 +23,8 @@ public class Client{
     String serverURL;
 
     HashMap<String,String> startableApps; //key = application name, value = startup script
-    HashMap<Integer,String> directories; //key = other device ID, value = dir_structure location
+    HashMap<Integer,String> otherClients; //key = other device ID, value = other deivce name
+    HashMap<Integer,String> directories;  //key = other device ID, value = dir_structure location
 
     public Client(Sapphire.StringReader sr){
         // read authToken
@@ -52,6 +53,10 @@ public class Client{
     }
     public String getDirPermissions(){
         return authorizedDirectory;
+    }
+
+    public HashMap<Integer,String> getOtherClients(){
+        return otherClients;
     }
     //#endregion init
 
@@ -305,11 +310,21 @@ public class Client{
         }
     }
     
+    public void getClientList(){
+        StructuredResponse response = sendRequest(serverURL+"/client_list", temporaryFileID, temporaryFileID, null);
+        String clientList = response.regions.get("ClientList");
+        String[] clients = clientList.split(":");
+        for(String client : clients){
+            String[] clientSplit = client.split(",");
+            otherClients.put(Integer.getInteger(clientSplit[0]),clientSplit[1]);
+        }
+    }
+
     public void sendFile(int destinationID, String destinationPath, String pathToFile){
         RequestBuilder rb = new RequestBuilder(temporaryFileID++);
         rb.addRegion("final_path", destinationPath);
         rb.addfile(pathToFile);
-        StructuredResponse response = sendRequest(serverURL+"/file_transfer/request",-1 ,destinationID, rb.build());
+        sendRequest(serverURL+"/file_transfer/request",-1 ,destinationID, rb.build());
         rb.closeRequest();
     }
     
@@ -317,14 +332,14 @@ public class Client{
         RequestBuilder rb = new RequestBuilder(temporaryFileID++);
         rb.addRegion("file_location", filePath);
         rb.addRegion("file_path", finalPath);
-        StructuredResponse response = sendRequest(serverURL+"/file_transfer/request",-1 ,targetID, rb.build());
+        sendRequest(serverURL+"/file_transfer/request",-1 ,targetID, rb.build());
         rb.closeRequest();
     }
 
     public void startApp(int targetID, String appName){
         RequestBuilder rb = new RequestBuilder(temporaryFileID++);
         rb.addRegion("app_name", appName);
-        StructuredResponse response = sendRequest(serverURL+"/file_transfer/request",-1 ,targetID, rb.build());
+        sendRequest(serverURL+"/file_transfer/request",-1 ,targetID, rb.build());
         rb.closeRequest();
     }
 
