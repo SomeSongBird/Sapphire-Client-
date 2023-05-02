@@ -27,9 +27,16 @@ public class MainController {
         }
         Thread thread = new Thread(menu);
         thread.start();
+
+        int refreshClientList = 0;
         while(!menu.shutdown){
             try {
                 client.update();
+                if(refreshClientList==0){
+                    client.getClientList();
+                    refreshClientList+=10;
+                }
+                refreshClientList--;
                 Thread.sleep(2500);
             } catch (Exception e) {
                 System.err.println("Error: "+e.getMessage());
