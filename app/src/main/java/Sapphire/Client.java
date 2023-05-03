@@ -226,7 +226,7 @@ public class Client{
     
     public void update(){
         StructuredResponse sRes = sendRequest("/update", -1,-1, null); //writes file(if any) to local storage and returns path to temporary file under file_location
-        if(sRes==null){
+        if(sRes.status!=200){
             connected = false;
             return;
         }
@@ -318,7 +318,11 @@ public class Client{
     public void getClientList(){
         StructuredResponse response = sendRequest("/client_list", -1, -1, null);
         if(response.isEmpty){
-            System.out.println("Empty client list");
+            if(response.status!=200){
+                System.out.println("Bad response");
+            }else{
+                System.out.println("Empty client list");
+            }
             return;
         }
 

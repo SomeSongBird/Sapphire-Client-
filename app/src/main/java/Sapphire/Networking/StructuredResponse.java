@@ -14,12 +14,14 @@ public class StructuredResponse {
     public HashMap<String,String> regions;
     public int taskID;
     public boolean isEmpty = false;
+    public int status = 0;
 
     public StructuredResponse(HttpURLConnection res){
         String sResponseBody = "";
         InputStream connectionInput = null;
         try{
-            if(res.getResponseCode()==200){
+            status = res.getResponseCode();
+            if(status==200){
                 connectionInput = res.getInputStream();
                 taskID = Integer.parseInt(res.getHeaderField("taskID"));
                 Scanner scan = new Scanner(connectionInput);
