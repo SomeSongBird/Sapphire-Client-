@@ -3,8 +3,6 @@ package Sapphire.Networking;
 //#region imports
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 import java.util.regex.*;
 import java.io.*;

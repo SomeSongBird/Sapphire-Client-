@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Scanner;
 import java.io.*;
 import java.nio.file.Files;
-import Sapphire.Menu.Menu;
 
 public class StringReader {
     static String inputfile;
