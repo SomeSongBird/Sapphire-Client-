@@ -28,10 +28,12 @@ public class Client{
 
     public Client(Sapphire.StringReader sr){
         // read authToken
-        serverURL = sr.getString("ServerIP");
+        serverURL = sr.getString("serverIP");
         authorizedDirectory = sr.getString("DefaultAuthorizedDirectory");
         externalDirectoryFilesPath = sr.getString("ExternalDirectoryFilesPath");
         temporaryFilePath = sr.getString("TemporaryFilePath");
+        startableApps = new HashMap<String,String>();
+        otherClients = new HashMap<Integer,String>();
         directories = new HashMap<Integer,String>();
         
         authToken = sr.getString("ClientAuthToken");
@@ -99,7 +101,7 @@ public class Client{
                 requestBody.write(startRegion,0,startRegion.length);
                 Files.copy(inputFile.toPath(),requestBody);
                 requestBody.write(endRegion,0,endRegion.length);
-/* 
+                /* 
                 BufferedInputStream bis = new BufferedInputStream(new FileInputStream(inputFile));
                 
                 byte[] buffer = new byte[1024];
@@ -131,14 +133,15 @@ public class Client{
     }
 
     public StructuredResponse sendRequest(String url,int taskID, int targetID, BufferedInputStream requestBody){
-        URLConnection connection;
+        HttpURLConnection connection;
         StructuredResponse sRes = null; 
         try{
-            connection = new URL(url).openConnection();
+            connection = (HttpURLConnection) new URL(serverURL+url).openConnection();
+            connection.setRequestMethod("POST");
             connection.setDoOutput(true);
             connection.setRequestProperty("authToken", authToken);
-            connection.setRequestProperty("taskID", taskID+"");
-            connection.setRequestProperty("targetID", targetID+"");
+            connection.setRequestProperty("taskID", new Integer(taskID).toString());
+            connection.setRequestProperty("targetID", new Integer(targetID).toString());
             if(requestBody!=null){
                 OutputStream output = connection.getOutputStream();
                 BufferedOutputStream bos = new BufferedOutputStream(output);
@@ -149,8 +152,10 @@ public class Client{
                     bos.write(buffer,0,len);
                 }
             }
-            sRes = new StructuredResponse(((HttpURLConnection)connection));
+            sRes = new StructuredResponse((connection));
+            connection.disconnect();
         }catch(Exception e){
+            System.out.println(e.getMessage());
             //log
         }
         return sRes;
@@ -220,13 +225,13 @@ public class Client{
     //#region taskManagement
     
     public void update(){
-        
-        StructuredResponse sRes = sendRequest(authToken, -1,-1, null); //writes file(if any) to local storage and returns path to temporary file under file_location
+        StructuredResponse sRes = sendRequest("/update", -1,-1, null); //writes file(if any) to local storage and returns path to temporary file under file_location
         if(sRes==null){
             connected = false;
             return;
         }
         connected = true;
+        if(sRes.isEmpty){return;}
         String taskName = sRes.regions.get("Task");
         String regionBody = null;
         switch(taskName){
@@ -311,12 +316,17 @@ public class Client{
     }
     
     public void getClientList(){
-        StructuredResponse response = sendRequest(serverURL+"/client_list", temporaryFileID, temporaryFileID, null);
+        StructuredResponse response = sendRequest("/client_list", -1, -1, null);
+        if(response.isEmpty){
+            System.out.println("Empty client list");
+            return;
+        }
+
         String clientList = response.regions.get("ClientList");
         String[] clients = clientList.split(":");
         for(String client : clients){
             String[] clientSplit = client.split(",");
-            otherClients.put(Integer.getInteger(clientSplit[0]),clientSplit[1]);
+            otherClients.put(Integer.parseInt(clientSplit[0]),clientSplit[1]);
         }
     }
 
@@ -324,7 +334,7 @@ public class Client{
         RequestBuilder rb = new RequestBuilder(temporaryFileID++);
         rb.addRegion("final_path", destinationPath);
         rb.addfile(pathToFile);
-        sendRequest(serverURL+"/file_transfer/request",-1 ,destinationID, rb.build());
+        sendRequest("/file_transfer/request",-1 ,destinationID, rb.build());
         rb.closeRequest();
     }
     
@@ -332,14 +342,14 @@ public class Client{
         RequestBuilder rb = new RequestBuilder(temporaryFileID++);
         rb.addRegion("file_location", filePath);
         rb.addRegion("file_path", finalPath);
-        sendRequest(serverURL+"/file_transfer/request",-1 ,targetID, rb.build());
+        sendRequest("/file_transfer/request",-1 ,targetID, rb.build());
         rb.closeRequest();
     }
 
     public void startApp(int targetID, String appName){
         RequestBuilder rb = new RequestBuilder(temporaryFileID++);
         rb.addRegion("app_name", appName);
-        sendRequest(serverURL+"/file_transfer/request",-1 ,targetID, rb.build());
+        sendRequest("/file_transfer/request",-1 ,targetID, rb.build());
         rb.closeRequest();
     }
 
