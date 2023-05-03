@@ -12,6 +12,7 @@ public class MainController {
     private boolean init(){
         try{
             client = new Client(new StringReader());
+            client.update();
             menu = new Menu(client);
         }catch(FileNotFoundException e){
             System.err.println(e.getMessage());
@@ -34,7 +35,7 @@ public class MainController {
                 client.update();
                 if(refreshClientList==0){
                     client.getClientList();
-                    refreshClientList+=10;
+                    refreshClientList = 12;
                 }
                 refreshClientList--;
                 Thread.sleep(2500);
