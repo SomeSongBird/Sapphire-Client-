@@ -15,21 +15,41 @@ public class StructuredResponse {
     public static long fileID = 1;
     public HashMap<String,String> regions;
     public int taskID;
+    public boolean isEmpty = false;
 
     public StructuredResponse(HttpURLConnection res){
-        Map<String,List<String>> headers = res.getRequestProperties();
-        taskID = Integer.getInteger(headers.get("TaskID").get(0));
-        Scanner s = null;
+        String sResponseBody = "";
+        InputStream connectionInput = null;
         try{
-            s = new Scanner(res.getInputStream());
-        }catch(Exception e){}
-            String sResponseBody ="";
-        while(s.hasNext()){
-            sResponseBody += s.next();
+            if(res.getResponseCode()==200){
+                connectionInput = res.getInputStream();
+                taskID = Integer.parseInt(res.getHeaderField("taskID"));
+                Scanner scan = new Scanner(connectionInput);
+                
+                String line;
+                while(scan.hasNext()){
+                    line = scan.next();
+                    sResponseBody += line;
+                }
+                scan.close();
+            }
+        }catch(Exception e){
+            System.out.println("Structured Response Error: "+e.getMessage());
+            isEmpty = true;
+            return;
         }
-        s.close();
+        if(sResponseBody.equals("")||sResponseBody.equals("None")){
+            isEmpty = true;
+            return;
+        }
         
-        for(String regionName : getRegionNames(sResponseBody)){
+        String[] sregions = getRegionNames(sResponseBody);
+        if(sregions.length==0){
+            isEmpty = true;
+            return;
+        }
+        regions = new HashMap<String,String>();
+        for(String regionName : sregions){
             // place the regions into the details to be indexed
             if(regionName.equals("File")){
                 // files are stored in a temporary file and what's stored is the file location
@@ -88,8 +108,8 @@ public class StructuredResponse {
         // find a full region
         while(matcher.find()){
             String region = input.substring(matcher.start(),matcher.end()); // get a string of just that region
-            String regionName = region.substring(region.indexOf("<")+1,region.indexOf(">")-1); 
-            append(regionNames,regionName);
+            String regionName = region.substring(region.indexOf("<")+1,region.indexOf(">")); 
+            regionNames = append(regionNames,regionName);
         }
         return regionNames;
     }
@@ -102,7 +122,7 @@ public class StructuredResponse {
     }
 
     private String findRegionBody(String input, String regionName){
-        Pattern regionPattern = Pattern.compile("<"+regionName+">.*<\\/"+regionName+">");
+        Pattern regionPattern = Pattern.compile("<"+regionName+">(.)*<\\/"+regionName+">");
         Matcher matcher = regionPattern.matcher(input);
         // find a full region
         if(matcher.find()){
