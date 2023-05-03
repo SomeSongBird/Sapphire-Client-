@@ -140,8 +140,8 @@ public class Client{
             connection.setRequestMethod("POST");
             connection.setDoOutput(true);
             connection.setRequestProperty("authToken", authToken);
-            connection.setRequestProperty("taskID", new Integer(taskID).toString());
-            connection.setRequestProperty("targetID", new Integer(targetID).toString());
+            connection.setRequestProperty("taskID", taskID+"");
+            connection.setRequestProperty("targetID", targetID+"");
             if(requestBody!=null){
                 OutputStream output = connection.getOutputStream();
                 BufferedOutputStream bos = new BufferedOutputStream(output);
