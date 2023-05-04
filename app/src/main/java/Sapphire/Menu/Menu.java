@@ -68,6 +68,7 @@ public class Menu implements Runnable{
                 System.out.println("\t2. Start Remote Application");
                 System.out.println("\t3. Refersh Directories");
                 System.out.println("\t4. Configuration");
+                System.out.println("\t5. Refresh");
                 printMenu = false;
             }
             
@@ -84,6 +85,8 @@ public class Menu implements Runnable{
                 case "4":
                     config();
                     break;
+                case "5":
+                    break;
                 case "quit": // replace with return statement if resume execution is implemented
                 case "shutdown":
                     shutdown = true;
@@ -94,7 +97,7 @@ public class Menu implements Runnable{
                 case "Help":
                     break;
                 default:
-                continue;
+                    continue;
             }
             printMenu = true;
         }
@@ -106,7 +109,7 @@ public class Menu implements Runnable{
         while(true){
             if(Thread.currentThread().isInterrupted()) return;
             clearScreen();
-            System.out.println("Send or Pull a file:\n\t1.  Send\n\t2.  Pull");
+            System.out.println("Send or Pull a file:\n\t1.  Send\n\t2.  Pull\n\t3.  Go Back");
             String input = getUserInput();
             if(cancel(input)){
                 break;
@@ -119,6 +122,8 @@ public class Menu implements Runnable{
                     case "2":
                         sendFile();
                         break;
+                    case "3":
+                        return;
                 }
             } catch (Exception e) {
                 System.out.println("Error :"+e.getMessage());
@@ -228,7 +233,8 @@ public class Menu implements Runnable{
 
     //#region RemoteStart
     private void remoteStart(){
-
+        System.out.println("Not implemented");
+        waitForNextKeystroke();
     }    
 
     //#endregion RemoteStart
@@ -252,6 +258,7 @@ public class Menu implements Runnable{
                 System.out.println("\t1. Get Authentication");
                 System.out.println("\t2. Set Directory Permissions");
                 System.out.println("\t3. Set Remote Start Permissions");
+                System.out.println("\t4. Go Back");
             }
             String input = getUserInput();
             if(cancel(input))return;
@@ -265,6 +272,8 @@ public class Menu implements Runnable{
                 case "3":
                     setRSPermissions();
                     break;
+                case "4":
+                    return;
                 default:
                 continue;
             }
