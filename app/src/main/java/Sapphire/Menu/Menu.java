@@ -117,10 +117,10 @@ public class Menu implements Runnable{
             try {
                 switch(input){
                     case "1":
-                        pullFile();
+                        sendFile();
                         break;
                     case "2":
-                        sendFile();
+                        pullFile();
                         break;
                     case "3":
                         return;

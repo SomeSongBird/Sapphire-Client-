@@ -237,7 +237,7 @@ public class Client{
         switch(taskName){
             case "FileTransfer":
                 if((regionBody = sRes.regions.get("confirmation"))!=null){
-                    // log confirmation
+                    System.out.println("file recieved");
                 }else if((regionBody = sRes.regions.get("final_path"))!=null){
                     // read file and place in final path location
                     String temporaryFile=null;
