@@ -3,6 +3,4 @@ serverIP::http://:44344
 
 #Client
 ClientAuthToken::
-temporaryFilePath::
 DefaultAuthorizedDirectory::
-ExternalDirectoryFilesPath::

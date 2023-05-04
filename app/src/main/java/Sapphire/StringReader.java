@@ -7,10 +7,22 @@ import java.nio.file.Files;
 
 public class StringReader {
     static String inputfile;
+    static String inputPath;
     static HashMap<String,String> strings;
     public StringReader() throws FileNotFoundException{
-        inputfile = System.getProperty("user.dir")+"/resources/strings.input";      // change secret.input to strings.input
+        inputPath = System.getProperty("user.dir")+"/resources/";
+        inputfile = "strings.input";      // change secret.input to strings.input
         strings = new HashMap<String,String>();
+        strings.put("temporaryFilePath",inputPath);
+        strings.put("ExternalDirectoryFilesPath",inputPath+"externDirs.input");
+        File extern = new File(strings.get("ExternalDirectoryFilesPath"));
+        if(!extern.exists()){
+            try{
+                extern.createNewFile();
+            }catch(IOException ioe){
+                System.out.println("could not create externalDirectory storage file");
+            }
+        }
         InputStream is;
         try {
             File input = new File(inputfile);
