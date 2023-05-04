@@ -318,11 +318,11 @@ public class Client{
     public void getClientList(){
         StructuredResponse response = sendRequest("/client_list", -1, -1, null);
         if(response.isEmpty){
-            if(response.status!=200){
-                System.out.println("Bad response");
+            /* if(response.status!=200){
+                //System.out.println("Bad response");
             }else{
                 System.out.println("Empty client list");
-            }
+            } */
             return;
         }
 
