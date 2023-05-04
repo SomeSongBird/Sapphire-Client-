@@ -11,7 +11,7 @@ public class StringReader {
     static HashMap<String,String> strings;
     public StringReader() throws FileNotFoundException{
         inputPath = System.getProperty("user.dir")+"/resources/";
-        inputfile = "strings.input";      // change secret.input to strings.input
+        inputfile = inputPath+"strings.input";      // change secret.input to strings.input
         strings = new HashMap<String,String>();
         strings.put("temporaryFilePath",inputPath);
         strings.put("ExternalDirectoryFilesPath",inputPath+"externDirs.input");
