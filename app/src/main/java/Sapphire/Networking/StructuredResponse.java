@@ -14,7 +14,7 @@ public class StructuredResponse {
     public HashMap<String,String> regions;
     public int taskID;
     public boolean isEmpty = false;
-    public int status = 0;
+    public int status;
 
     public StructuredResponse(HttpURLConnection res){
         String sResponseBody = "";
