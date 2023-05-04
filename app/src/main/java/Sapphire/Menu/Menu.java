@@ -191,7 +191,10 @@ public class Menu implements Runnable{
         while(true){
             if(Thread.currentThread().isInterrupted()) return;
             System.out.println("What device would you like to send to?");
-            // display all 
+            HashMap<Integer,String> clientList = mc.getOtherClients();
+            for(int id : clientList.keySet()){
+                System.out.println("ID: "+id+" | "+clientList.get(id));
+            }
             String sdeviceID = getUserInput();
             if(cancel(sdeviceID)){
                 return;
