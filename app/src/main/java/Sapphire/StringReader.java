@@ -13,7 +13,7 @@ public class StringReader {
         inputPath = System.getProperty("user.dir")+"/resources/";
         inputfile = inputPath+"strings.input";      // change secret.input to strings.input
         strings = new HashMap<String,String>();
-        strings.put("temporaryFilePath",inputPath);
+        strings.put("TemporaryFilePath",inputPath);
         strings.put("ExternalDirectoryFilesPath",inputPath+"externDirs.input");
         File extern = new File(strings.get("ExternalDirectoryFilesPath"));
         if(!extern.exists()){

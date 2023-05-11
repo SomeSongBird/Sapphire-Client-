@@ -234,6 +234,7 @@ public class Client{
         if(sRes.isEmpty){return;}
         String taskName = sRes.regions.get("Task");
         String regionBody = null;
+        
         switch(taskName){
             case "FileTransfer":
                 if((regionBody = sRes.regions.get("confirmation"))!=null){
