@@ -212,12 +212,20 @@ public class Menu implements Runnable{
             System.out.println("Selected device: "+deviceID);
             // replace with dir parser
             System.out.println("Enter the full path and name of the file you want to send");
-            // for now, assume input is correct
+            System.out.print(mc.getDirPermissions());
             filename = getUserInput();
             if(cancel(filename)){
                 return;
             }
-            break;
+            if(filename.charAt(0)=='/'||filename.charAt(0)=='\\'){
+                filename=filename.substring(1,filename.length());
+            }
+            File f = new File(mc.getDirPermissions()+filename);
+            if(!f.exists()||filename.contains("..")){
+                System.out.println("Invalid file name or path");
+            }else{
+                break;
+            }
         }
         clearScreen();
         while(true){
@@ -229,7 +237,8 @@ public class Menu implements Runnable{
             }
             break;
         }
-        mc.sendFile(deviceID, filename, desinationName);
+        mc.sendFile(deviceID, desinationName, filename);
+        waitForNextKeystroke();
     }
     
     //#endregion FileTransfer

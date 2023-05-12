@@ -47,11 +47,20 @@ public class StringReader {
                         strings.put(seperatedLine[0],"");    
                         continue;
                     }
-                    System.out.println("Please provide an input for "+seperatedLine[0]);
-                    System.out.println("All inputs can be changed later in the config menu");
-                    String input = userInput.next();
-                    strings.put(seperatedLine[0],input);
-                    writeInput(seperatedLine[0],input);
+                    while(true){
+                        System.out.println("Please provide an input for "+seperatedLine[0]);
+                        System.out.println("All inputs can be changed later in the config menu");
+                        String input = userInput.next();
+                        File f = new File(input);
+                        if(f.exists()){
+                            if(f.isDirectory()){
+                                strings.put(seperatedLine[0],input);
+                                writeInput(seperatedLine[0],input);
+                                break;
+                            }
+                        }
+                        System.out.println(input+" is not a valid directory");
+                    }
                 }else if(seperatedLine[1].equals("http://:44344")){ //Add regex to verify IP input
                     System.out.println("Please provide the IP of the Server\nPlease note that errors will need to be changed manually");
                     String ip = "http://"+userInput.next()+":44344";

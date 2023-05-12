@@ -3,9 +3,12 @@ package Sapphire;
 //#region imports
 import java.io.*;
 import java.net.*;
+import java.nio.Buffer;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.zip.*;
+
+import javax.xml.crypto.dsig.spec.ExcC14NParameterSpec;
 
 import Sapphire.Utilities.*;
 import Sapphire.Networking.StructuredResponse;
@@ -64,13 +67,12 @@ public class Client{
 
     //#region helpers
     class RequestBuilder{
-        File temporaryFile;
-        BufferedOutputStream requestBody;
+        String temporaryFileString;
         RequestBuilder(int temporaryFileID){
-            temporaryFile = new File(temporaryFilePath+"requestBuilder"+temporaryFileID+".tmp");
+            temporaryFileString = temporaryFilePath+"requestBuilder"+temporaryFileID+".tmp";
+            //System.out.println(temporaryFilePath+"requestBuilder"+temporaryFileID+".tmp");
             try{
-                temporaryFile.createNewFile();
-                requestBody = new BufferedOutputStream(new FileOutputStream(temporaryFile));
+                new File(temporaryFileString).createNewFile();
             }catch(Exception e){
                 System.err.println("Could not create temporary file for new request");
             }
@@ -78,63 +80,73 @@ public class Client{
 
         public void addRegion(String regionName,String regionBody){
             String newRegion = "<"+regionName+">"+regionBody+"</"+regionName+">\r\n";
+            try(BufferedOutputStream requestBody = new BufferedOutputStream(new FileOutputStream(new File(temporaryFileString),true));
             BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(newRegion.getBytes()));
-            
-            byte[] buffer = new byte[1024];
-            int len;
-            try{
+            ){
+                byte[] buffer = new byte[1024];
+                int len;
                 while((len=bis.read())>0){
                     requestBody.write(buffer,0,len);
+                    requestBody.flush();
                 }
                 bis.close();
+                requestBody.close();
             }catch(Exception e){
-                System.err.println("Buffered input stream failure");
+                System.err.println("Buffered stream failure: "+e.getMessage());
+                return;
             }
         }
 
         public void addfile(String pathToFile){
             byte[] startRegion = "<File>".getBytes();
-            byte[] endRegion = "</File>\r\n".getBytes();
-            try{
-                File inputFile = new File(zipfile(pathToFile));
-
+            byte[] endRegion = "</File>".getBytes();
+            File inputFile = null; 
+            try(BufferedOutputStream requestBody = new BufferedOutputStream(new FileOutputStream(new File(temporaryFileString),true));
+            ){
+                inputFile = new File(zipfile(pathToFile));
                 requestBody.write(startRegion,0,startRegion.length);
+                requestBody.flush();
                 Files.copy(inputFile.toPath(),requestBody);
+                requestBody.flush();
                 requestBody.write(endRegion,0,endRegion.length);
-                /* 
-                BufferedInputStream bis = new BufferedInputStream(new FileInputStream(inputFile));
-                
-                byte[] buffer = new byte[1024];
-                int len;
-                while((len=bis.read())>0){
-                    requestBody.write(buffer,0,len);
-                }
-                bis.close(); */
+                requestBody.flush();
             }catch(Exception e){
                 System.err.println("Buffered input stream failure");
             }
+            if(inputFile!=null) inputFile.delete();
         }
 
-        public BufferedInputStream build(){
+        public BufferedInputStream getInputStream(){
             BufferedInputStream bis=null;
             try{
-                requestBody.close();
-                bis = new BufferedInputStream(new FileInputStream(temporaryFile));
+                bis = new BufferedInputStream(new FileInputStream(new File(temporaryFileString)));
             }catch(Exception e){
                 System.err.println("Problem converting temporary file to input stream");
             }
             return bis; 
         }
+        
         public void closeRequest(){
-            if(temporaryFile!=null){
-                temporaryFile.delete();
+            File temporaryFile = new File(temporaryFileString);
+            if(temporaryFile.exists()){
+                if(temporaryFile.delete()){
+                    System.out.println("temporary file deleted");
+                }else{
+                    System.out.println("Not deleted");
+                }
+            }else{
+                System.out.println("temporaryFile not found");
             }
         }
     }
 
-    public StructuredResponse sendRequest(String url,int taskID, int targetID, BufferedInputStream requestBody){
+    public StructuredResponse sendRequest(String url,int taskID, int targetID, RequestBuilder requestBuilder){
         HttpURLConnection connection;
-        StructuredResponse sRes = null; 
+        StructuredResponse sRes = null;
+        BufferedInputStream requestBody = null;
+        if(requestBuilder!=null){
+            requestBody = requestBuilder.getInputStream();
+        }
         try{
             connection = (HttpURLConnection) new URL(serverURL+url).openConnection();
             connection.setRequestMethod("POST");
@@ -149,14 +161,21 @@ public class Client{
                 byte[] buffer = new byte[1024];
                 int len;
                 while((len=requestBody.read(buffer))>0){
+                    // System.out.write(buffer,0, len); // to read the buffer to the CL
                     bos.write(buffer,0,len);
+                    bos.flush();
                 }
+                bos.close();
+                requestBody.close();
             }
             sRes = new StructuredResponse((connection));
             connection.disconnect();
         }catch(Exception e){
             System.out.println(e.getMessage());
             //log
+        }
+        finally{
+            if(requestBuilder!=null) requestBuilder.closeRequest();
         }
         return sRes;
     }
@@ -165,28 +184,33 @@ public class Client{
     //#region fileZippers
 
     private String zipfile(String filename){
-        File infile = new File(filename);
+        File infile = new File(authorizedDirectory+filename);
         String outputFileName = temporaryFilePath+filename+".zip";
         File outfile = new File(outputFileName);
+        //System.out.println("tozip: "+authorizedDirectory+filename);
+        //System.out.println("zip: "+outputFileName);
+        
         try{
             outfile.createNewFile();
             FileInputStream fis = new FileInputStream(infile);
             ZipOutputStream zOut = new ZipOutputStream(new FileOutputStream(outfile));
             
-            ZipEntry zipEntry = new ZipEntry("entry");
+            ZipEntry zipEntry = new ZipEntry("content");
             zOut.putNextEntry(zipEntry);
-
+            
             byte[] bytes = new byte[1024];
             int length;
             while((length = fis.read(bytes)) >= 0) {
                 zOut.write(bytes, 0, length);
             }
+
             zOut.flush();
             zOut.closeEntry();
             fis.close();
             zOut.close();
         }catch(IOException e){
-            //log error
+            System.out.println("Error zipping file: "+e);
+            outfile.delete();
             return null;
         }
         
@@ -195,7 +219,10 @@ public class Client{
 
     private void unzipFile(String path,String tmpFileName){
         File input = new File(temporaryFilePath+tmpFileName);
-        File outfile = new File(path);
+        if(path.charAt(0)=='/'||path.charAt(0)=='\\'){
+            path=path.substring(1,path.length());
+        }
+        File outfile = new File(authorizedDirectory+path);
         
         try{
             ZipInputStream zis = new ZipInputStream(new FileInputStream(input));
@@ -250,11 +277,13 @@ public class Client{
                     RequestBuilder rb = new RequestBuilder(temporaryFileID++);
                     rb.addRegion("confirmation",regionBody);
                     //send confirmation;
-                    sendRequest(serverURL+"/file_transfer/compliance", sRes.taskID, -1, rb.build());
-                    rb.closeRequest();
+                    sendRequest(serverURL+"/file_transfer/compliance", sRes.taskID, -1, rb);
                 }else if((regionBody = sRes.regions.get("requested_file_path"))!=null){
                     //zip file at location and send to server
-                    if((new File(regionBody).exists())){
+                    if(regionBody.charAt(0)=='/'||regionBody.charAt(0)=='\\'){
+                        regionBody=regionBody.substring(1,regionBody.length());
+                    }
+                    if((new File(authorizedDirectory+regionBody).exists())){
                         RequestBuilder rb = new RequestBuilder(temporaryFileID++);
                         try{
                             rb.addfile(regionBody);
@@ -264,8 +293,7 @@ public class Client{
                         }
 
                         // send zip file
-                        sendRequest(serverURL+"/file_transfer/compliance", sRes.taskID, -1, rb.build());
-                        rb.closeRequest();
+                        sendRequest(serverURL+"/file_transfer/compliance", sRes.taskID, -1, rb);
                         return;
                     }else{
                         // log error
@@ -289,8 +317,7 @@ public class Client{
                         fullDir+=dir+"\n";
                     }
                     rb.addRegion("directory_details",fullDir);
-                    sendRequest(serverURL+"/update_directory/compliance", sRes.taskID, -1, rb.build());
-                    rb.closeRequest();
+                    sendRequest(serverURL+"/update_directory/compliance", sRes.taskID, -1, rb);
                 }else if((regionBody = sRes.regions.get("directory_details"))!=null){
                     // store the directory details with the ID and name of the device they're from 
                     int target_client = Integer.parseInt(sRes.regions.get("target_client"));
@@ -319,11 +346,6 @@ public class Client{
     public void getClientList(){
         StructuredResponse response = sendRequest("/client_list", -1, -1, null);
         if(response.isEmpty){
-            /* if(response.status!=200){
-                //System.out.println("Bad response");
-            }else{
-                System.out.println("Empty client list");
-            } */
             return;
         }
 
@@ -339,23 +361,20 @@ public class Client{
         RequestBuilder rb = new RequestBuilder(temporaryFileID++);
         rb.addRegion("final_path", destinationPath);
         rb.addfile(pathToFile);
-        sendRequest("/file_transfer/request",-1 ,destinationID, rb.build());
-        rb.closeRequest();
+        sendRequest("/file_transfer/request",-1 ,destinationID, rb);
     }
     
     public void pullFile(int targetID, String filePath, String finalPath){
         RequestBuilder rb = new RequestBuilder(temporaryFileID++);
         rb.addRegion("file_location", filePath);
         rb.addRegion("file_path", finalPath);
-        sendRequest("/file_transfer/request",-1 ,targetID, rb.build());
-        rb.closeRequest();
+        sendRequest("/file_transfer/request",-1 ,targetID, rb);
     }
 
     public void startApp(int targetID, String appName){
         RequestBuilder rb = new RequestBuilder(temporaryFileID++);
         rb.addRegion("app_name", appName);
-        sendRequest("/file_transfer/request",-1 ,targetID, rb.build());
-        rb.closeRequest();
+        sendRequest("/file_transfer/request",-1 ,targetID, rb);
     }
 
     //#endregion taskManagement
