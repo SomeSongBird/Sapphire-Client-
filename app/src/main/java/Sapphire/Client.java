@@ -77,16 +77,11 @@ public class Client{
 
         public void addRegion(String regionName,String regionBody){
             String newRegion = "<"+regionName+">"+regionBody+"</"+regionName+">\r\n";
+            byte[] newRegionBytes = newRegion.getBytes();
             try(BufferedOutputStream requestBody = new BufferedOutputStream(new FileOutputStream(new File(temporaryFileString),true));
-            BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(newRegion.getBytes()));
             ){
-                byte[] buffer = new byte[1024];
-                int len;
-                while((len=bis.read())>0){
-                    requestBody.write(buffer,0,len);
-                    requestBody.flush();
-                }
-                bis.close();
+                requestBody.write(newRegionBytes, 0, newRegionBytes.length);
+                requestBody.flush();
                 requestBody.close();
             }catch(Exception e){
                 System.err.println("Buffered stream failure: "+e.getMessage());
@@ -127,7 +122,7 @@ public class Client{
             File temporaryFile = new File(temporaryFileString);
             if(temporaryFile.exists()){
                 if(temporaryFile.delete()){
-                    System.out.println("temporary file deleted");
+                    //System.out.println("temporary file deleted");
                 }else{
                     System.out.println("Not deleted");
                 }
