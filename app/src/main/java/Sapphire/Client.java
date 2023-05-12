@@ -3,12 +3,9 @@ package Sapphire;
 //#region imports
 import java.io.*;
 import java.net.*;
-import java.nio.Buffer;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.zip.*;
-
-import javax.xml.crypto.dsig.spec.ExcC14NParameterSpec;
 
 import Sapphire.Utilities.*;
 import Sapphire.Networking.StructuredResponse;
