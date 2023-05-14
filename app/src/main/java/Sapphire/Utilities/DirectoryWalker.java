@@ -6,7 +6,7 @@ public class DirectoryWalker{
     public String[] fileStructure;
     public DirectoryWalker(String dir_path){
         File[] dir_name = {new File(dir_path)};
-        fileStructure = this.walk(dir_name[0].getName(),dir_name);
+        fileStructure = walk(dir_name[0].getName(),dir_name);
     }
 
     private String[] walk(String root_path,File[] dirs){

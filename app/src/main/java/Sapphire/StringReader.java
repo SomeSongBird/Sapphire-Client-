@@ -14,7 +14,7 @@ public class StringReader {
         inputfile = inputPath+"strings.input";      // change secret.input to strings.input
         strings = new HashMap<String,String>();
         strings.put("TemporaryFilePath",inputPath);
-        strings.put("ExternalDirectoryFilesPath",inputPath+"externDirs.input");
+        strings.put("ExternalDirectoryFilesPath",inputPath+"/externDirs/");
         File extern = new File(strings.get("ExternalDirectoryFilesPath"));
         if(!extern.exists()){
             try{

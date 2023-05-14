@@ -7,17 +7,17 @@ import java.util.Random;
 import java.util.Scanner;
 import Sapphire.*;
 //#endregion imports
+import Sapphire.Utilities.DirectoryWalker;
+import Sapphire.Utilities.MockDir;
 
 public class Menu implements Runnable{
     //#region init
     Scanner userInput = new Scanner(System.in);
-    
     public Boolean shutdown = false;
     Client mc;
     public Menu(Client client){
         mc = client;
     }
-
     public void run(){
         mainMenu();
         return;
@@ -27,7 +27,7 @@ public class Menu implements Runnable{
     //#region helpers
     private boolean cancel(String userInput){
         String ui = userInput.toLowerCase();
-        if(ui.equals("cancel")||ui.equals("exit")){
+        if(ui.equals("cancel")||ui.equals("exit")||ui.equals("quit")){
             return true;
         }
         return false;
@@ -36,6 +36,70 @@ public class Menu implements Runnable{
     private String getUserInput(){
         String in = userInput.next();
         return in;
+    }
+
+    private String parseDirectory(int id){
+       // HashMap<Integer,String> otherClients = mc.getOtherClients();
+        MockDir topDir = null;
+        String input;
+/* 
+        //device selection
+        System.out.println("ID: 0 | This device");
+        for(int id : otherClients.keySet()){
+            System.out.println("ID: "+id+" | "+otherClients.get(id));
+        }
+
+        //parser setup
+        input = getUserInput();
+        if(cancel(input)){return null;}
+        if(input.equals("0")){
+            DirectoryWalker walker = new DirectoryWalker(mc.getDirPermissions());
+            topDir = new MockDir(walker.fileStructure,null);
+        }else{
+            try{
+                int id = Integer.parseInt(input);
+                topDir = mc.readExternDir(id);
+            }catch(Exception e){
+                return;
+            }
+        }
+ */
+        if(id==0){
+            DirectoryWalker walker = new DirectoryWalker(mc.getDirPermissions());
+            topDir = new MockDir(walker.fileStructure,null);
+        }else{
+            topDir = mc.readExternDir(id);
+        }
+        MockDir current = topDir;
+
+        //parser
+        //clearScreen();
+        System.out.println(current.fullName);
+        while(true){
+            input = getUserInput().strip();
+            if(cancel(input)) return null;
+            String[] splitInput = input.split(" ");
+            switch(splitInput[0]){
+                case "ls":
+                    System.out.println(current);
+                    break;
+                case "cd":
+                    if(splitInput.equals("..")){
+                        current = current.parent;
+                    }else{
+                        current = current.getNextDir(splitInput[1]);
+                    }
+                    System.out.println(current.fullName);
+                    break;
+                case "select":
+                    MockDir temporary = current.getNextDir(splitInput[1]);
+                    if(temporary != current && temporary.nextLayer.length == 0){
+                        return temporary.fullName;
+                    }else{
+                        System.out.println("unable to return that directory");
+                    }
+            }
+        }
     }
 
     public static void waitForNextKeystroke(){
@@ -111,9 +175,7 @@ public class Menu implements Runnable{
             clearScreen();
             System.out.println("Send or Pull a file:\n\t1.  Send\n\t2.  Pull\n\t3.  Go Back");
             String input = getUserInput();
-            if(cancel(input)){
-                break;
-            }
+            if(cancel(input)){break;}
             try {
                 switch(input){
                     case "1":
@@ -161,13 +223,9 @@ public class Menu implements Runnable{
         }
         while(true){
             System.out.println("Selected device: "+deviceID);
-            // replace with dir parser
             System.out.println("Enter the full path and name of the file you want to pull");
-            // for now, assume input is correct
-            filename = getUserInput();
-            if(cancel(filename)){
-                return;
-            }
+            filename = parseDirectory(deviceID);
+            if(filename==null) return;
             break;
         }
         clearScreen();

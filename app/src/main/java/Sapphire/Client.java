@@ -5,6 +5,7 @@ import java.io.*;
 import java.net.*;
 import java.nio.file.Files;
 import java.util.HashMap;
+import java.util.Scanner;
 import java.util.zip.*;
 
 import Sapphire.Utilities.*;
@@ -24,7 +25,7 @@ public class Client{
 
     HashMap<String,String> startableApps; //key = application name, value = startup script
     HashMap<Integer,String> otherClients; //key = other device ID, value = other deivce name
-    HashMap<Integer,String> directories;  //key = other device ID, value = dir_structure location
+    HashMap<Integer,String> directories;  //key = other device ID, value = dir_structure file
 
     public Client(Sapphire.StringReader sr){
         // read authToken
@@ -34,7 +35,7 @@ public class Client{
         temporaryFilePath = sr.getString("TemporaryFilePath");
         startableApps = new HashMap<String,String>();
         otherClients = new HashMap<Integer,String>();
-        directories = new HashMap<Integer,String>();
+        directories = readDirs();
         
         authToken = sr.getString("ClientAuthToken");
         if(authToken.equals("")){
@@ -56,9 +57,31 @@ public class Client{
     public String getDirPermissions(){
         return authorizedDirectory;
     }
-
     public HashMap<Integer,String> getOtherClients(){
         return otherClients;
+    }
+    public HashMap<Integer,String> getOtherDirs(){
+        return directories;
+    }
+    private HashMap<Integer,String> readDirs(){
+        HashMap<Integer,String> forReturn = new HashMap<Integer,String>();
+        File dir = new File(externalDirectoryFilesPath);
+        if(dir.exists()&&dir.isDirectory()){
+            for(File file : dir.listFiles()){
+                String[] name_extention = file.getName().split(".");
+                if(name_extention.length>1){
+                    if(name_extention[1].equals("dir")){
+                        try{
+                            int id = Integer.parseInt(name_extention[0]);
+                            forReturn.put(id,externalDirectoryFilesPath + file.getName());
+                        }catch(NumberFormatException nfe){}
+                    }
+                }
+            }
+        }else{
+            System.out.println("problem with extern_Dirs folder");
+        }
+        return forReturn;
     }
     //#endregion init
 
@@ -170,6 +193,31 @@ public class Client{
             if(requestBuilder!=null) requestBuilder.closeRequest();
         }
         return sRes;
+    }
+    
+    public MockDir readExternDir(int id){
+        try {
+            File f = new File(directories.get(id));
+            if(f.exists()){
+                String[] sDirStruct = new String[0];
+                Scanner scan = new Scanner(new FileInputStream(f));
+                while(scan.hasNext()){
+                    append(sDirStruct,scan.nextLine());
+                }
+                if(sDirStruct.length>0){
+                    return new MockDir(sDirStruct,null);
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Error reading external directory file");
+        } 
+        return null;
+    }
+    private String[] append(String[] mdl, String md){
+        String [] forReturn = new String[mdl.length+1];
+        System.arraycopy(mdl, 0, forReturn, 0, mdl.length);
+        forReturn[mdl.length] = md;
+        return forReturn;
     }
     //#endregion helpers
 
@@ -313,21 +361,24 @@ public class Client{
                 }else if((regionBody = sRes.regions.get("directory_details"))!=null){
                     // store the directory details with the ID and name of the device they're from 
                     int target_client = Integer.parseInt(sRes.regions.get("target_client"));
-                    String fName = externalDirectoryFilesPath+"client_"+target_client+".txt";
+                    String fName = externalDirectoryFilesPath+target_client+".dir";
                     File f = new File(fName);
                     try{
-                        f.createNewFile();
+                        if(!f.exists()){
+                            f.createNewFile();
+                        }
+                        String dir_structure = null;
+                        if((dir_structure = sRes.regions.get("directory_details"))!=null){
+                            System.out.println(dir_structure);
+                            Files.writeString(f.toPath(),dir_structure);
+                        }
                     }catch(Exception e){
-                        // log
+                        
+                        return;
                     }
-                    try (PrintWriter out = new PrintWriter(fName)) {
-                        out.println(regionBody);
-                    }catch(Exception e){
-
-                    }
-                    directories.put(target_client, f.getName());
+                    directories.put(target_client, fName);
                 }else{
-                    //log error
+                    System.out.println("Directory request error on update");
                 }
             break;
             default:
@@ -361,6 +412,11 @@ public class Client{
         rb.addRegion("file_location", filePath);
         rb.addRegion("file_path", finalPath);
         sendRequest("/file_transfer/request",-1 ,targetID, rb);
+    }
+
+    public void updateExternDirs(int targetID){
+        RequestBuilder rb = new RequestBuilder(temporaryFileID++);
+        sendRequest("/update_directory/request", -1, targetID, rb);
     }
 
     public void startApp(int targetID, String appName){
