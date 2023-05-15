@@ -110,12 +110,12 @@ public class Menu implements Runnable{
                     break;
                 case "select":
                     if(splitInput.length>1){
-                        MockDir temporary = current.getNextDir(splitInput[1]);
-                        if(!temporary.isDirectory()){
-                            return temporary.getPath();
-                        }else{
-                            System.out.println("unable to return that directory");
+                        for(MockDir temporary : current.nextLayer){
+                            if(temporary.name.equals(splitInput[1])&&!temporary.isDirectory()){
+                                return temporary.getPath();
+                            }
                         }
+                        System.out.println("unable to return that directory");
                     }    
             }
         }
