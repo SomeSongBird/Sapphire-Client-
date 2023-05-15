@@ -45,28 +45,6 @@ public class Menu implements Runnable{
        // HashMap<Integer,String> otherClients = mc.getOtherClients();
         MockDir topDir = null;
         String input;
-/* 
-        //device selection
-        System.out.println("ID: 0 | This device");
-        for(int id : otherClients.keySet()){
-            System.out.println("ID: "+id+" | "+otherClients.get(id));
-        }
-
-        //parser setup
-        input = getUserInput();
-        if(cancel(input)){return null;}
-        if(input.equals("0")){
-            DirectoryWalker walker = new DirectoryWalker(mc.getDirPermissions());
-            topDir = new MockDir(walker.fileStructure,null);
-        }else{
-            try{
-                int id = Integer.parseInt(input);
-                topDir = mc.readExternDir(id);
-            }catch(Exception e){
-                return;
-            }
-        }
- */
         if(id==0){
             DirectoryWalker walker = new DirectoryWalker(mc.getDirPermissions());
             topDir = new MockDir(walker.fileStructure);
@@ -329,7 +307,32 @@ public class Menu implements Runnable{
 
     //#region RefreshDirectories
     private void refreshDirectories(){
-
+        int deviceID = -1;
+        clearScreen();
+        while(true){
+            if(Thread.currentThread().isInterrupted()) return;
+            System.out.println("Enter the ID of the device you want the file structure of");
+            HashMap<Integer,String> clientList = mc.getOtherClients();
+            for(int id : clientList.keySet()){
+                System.out.println("ID: "+id+" | "+clientList.get(id));
+            }
+            String sdeviceID = getUserInput();
+            if(cancel(sdeviceID)){
+                return;
+            }
+            try{
+                deviceID = Integer.parseInt(sdeviceID);
+                clearScreen();
+                break;
+            }catch(Exception e){
+                clearScreen();
+                System.out.println("Invalid device ID");
+            }
+        }
+        
+        mc.updateExternDirs(deviceID);
+        System.out.println("Request for "+deviceID+"'s file structure sent");
+        waitForNextKeystroke();
     }
     //#endregion RefreshDirectories
 
