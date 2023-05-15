@@ -75,7 +75,7 @@ public class StructuredResponse {
                     temp_file.createNewFile();
                     BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(temporaryFile));
                     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(temp_file));
-
+                    
                     byte[] buffer = new byte[1024];
                     int len;
                     boolean started=false,ended=false;
@@ -87,8 +87,7 @@ public class StructuredResponse {
                                 if(regionbounds[1]==-1){
                                     regionbounds[1] = len;
                                 }
-                                byte[] tmp = Arrays.copyOfRange(buffer, regionbounds[0], regionbounds[1]);
-                                bufferedOutputStream.write(tmp,0,tmp.length);
+                                bufferedOutputStream.write(buffer,regionbounds[0],regionbounds[1]-regionbounds[0]);
                             }
                         }else{
                             if(regionbounds[1]==-1){
@@ -96,11 +95,9 @@ public class StructuredResponse {
                             }else{
                                 ended=true;
                             }
-                            byte[] tmp = Arrays.copyOfRange(buffer, 0, regionbounds[1]);
-                            bufferedOutputStream.write(tmp,0,tmp.length);
+                            bufferedOutputStream.write(buffer,0,regionbounds[1]);
                         }
                     }
-
                     bufferedOutputStream.flush();
                     bufferedOutputStream.close();
                     bufferedInputStream.close();
@@ -113,7 +110,7 @@ public class StructuredResponse {
                 regions.put(regionName, findRegionBody(sResponseBody,regionName));
             }
         }
-    
+        //System.out.println("fully outside");
         if(temporaryFile.exists()){
             temporaryFile.delete();
         }
@@ -178,8 +175,8 @@ public class StructuredResponse {
     }
 
     private int[] getFileBounds(byte[] input){
-        byte[] startRegionNameBytes = ("<File>").getBytes();
-        byte[] endRegionNameBytes = ("</File>").getBytes();
+        byte[] startRegionNameBytes = ("<File>\r\n").getBytes();
+        byte[] endRegionNameBytes = ("\r\n</File>").getBytes();
         int regionNameSize = startRegionNameBytes.length;
         int[] regionBounds = {-1,-1};
         for(int i=0;i<input.length;i++){
@@ -189,7 +186,9 @@ public class StructuredResponse {
                 regionBounds[0] = i+regionNameSize; 
                 i+= regionNameSize;
             }else if(Arrays.equals(slice2, endRegionNameBytes)&&(regionBounds[1]==-1)){
+                //System.out.println(new String(slice2));
                 regionBounds[1] = i-1;
+                //System.out.println(new String(input,0,i-1));
                 break;
             }
         }

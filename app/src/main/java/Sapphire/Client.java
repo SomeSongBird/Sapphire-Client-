@@ -246,7 +246,8 @@ public class Client{
             
             byte[] bytes = new byte[1024];
             int length;
-            while((length = fis.read(bytes)) >= 0) {
+            while((length = fis.read(bytes)) > 0) {
+                System.out.write(bytes);
                 zOut.write(bytes, 0, length);
             }
 
@@ -265,12 +266,17 @@ public class Client{
 
     private void unzipFile(String path,String tmpFileName){
         File input = new File(temporaryFilePath+tmpFileName);
+        path = path.strip();
         if(path.charAt(0)=='/'||path.charAt(0)=='\\'){
             path=path.substring(1,path.length());
         }
         File outfile = new File(authorizedDirectory+path);
-        
+        System.out.println("destination: "+authorizedDirectory+path);
+        System.out.println("input: "+input.getPath());
         try{
+            if(!input.exists()){
+                System.out.println("input file does not exist");
+            }
             ZipInputStream zis = new ZipInputStream(new FileInputStream(input));
             BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(outfile));
             
@@ -279,7 +285,8 @@ public class Client{
             while(zent!=null){
                 byte[] buffer = new byte[1024];
                 int len;
-                while((len=zis.read(buffer))>0){
+                while((len=zis.read(buffer))>=0){
+                    System.out.write(buffer);
                     bos.write(buffer,0,len);
                 }
                 zent = zis.getNextEntry();
@@ -308,9 +315,9 @@ public class Client{
         if(sRes.isEmpty){return;}
         String taskName = sRes.regions.get("Task");
         String regionBody = null;
-        
         switch(taskName){
             case "FileTransfer":
+                System.out.println("Transfer File");
                 if((regionBody = sRes.regions.get("confirmation"))!=null){
                     System.out.println("file recieved");
                 }else if((regionBody = sRes.regions.get("final_path"))!=null){
@@ -322,10 +329,12 @@ public class Client{
                         return;
                     }
                     unzipFile(regionBody,temporaryFile);
+                    System.out.println("Sending confirmation");
                     RequestBuilder rb = new RequestBuilder(temporaryFileID++);
                     rb.addRegion("confirmation",regionBody);
                     //send confirmation;
-                    sendRequest(serverURL+"/file_transfer/compliance", sRes.taskID, -1, rb);
+                    sendRequest("/file_transfer/compliance", sRes.taskID, -1, rb);
+                    System.out.println("Confirmation sent");
                 }else if((regionBody = sRes.regions.get("requested_file_path"))!=null){
                     //zip file at location and send to server
                     if(regionBody.charAt(0)=='/'||regionBody.charAt(0)=='\\'){
@@ -341,7 +350,7 @@ public class Client{
                         }
 
                         // send zip file
-                        sendRequest(serverURL+"/file_transfer/compliance", sRes.taskID, -1, rb);
+                        sendRequest("/file_transfer/compliance", sRes.taskID, -1, rb);
                         return;
                     }else{
                         // log error
