@@ -13,11 +13,11 @@ public class MockDir {
         nextLayer = new MockDir[0];
         fullName = dirList[0];
         parent = this;
-        String[] split = fullName.split("[\\\\/]");
+        String[] split = fullName.split("[\\\\\\/]");
         name = split[split.length-1];
 
         for(int i=1;i<dirList.length;i++){
-            String[] secondSplit = dirList[i].split("[\\\\/]");
+            String[] secondSplit = dirList[i].split("[\\\\\\/]");
             allDirs = append(allDirs, new MockDir(dirList[i],secondSplit[secondSplit.length-1]));
             //System.out.println(allDirs.length);
         }
@@ -56,7 +56,7 @@ public class MockDir {
     }
 
     public String getPath(){
-        String[] split = fullName.split("[\\\\/]");
+        String[] split = fullName.split("[\\\\\\/]");
         String forRet = split[1];
         for(int i=2;i<split.length;i++){
             forRet+="/"+split[i];

@@ -74,14 +74,7 @@ public class Menu implements Runnable{
                                 if(temporary.name.equals(splitInput[1])&&temporary.isDirectory()){
                                     current = temporary;
                                 }
-                            }
-                            /* MockDir temporary = current.getNextDir(splitInput[1]);
-                            //System.out.println(temporary.fullName);
-                            if(temporary.isDirectory()||true){
-                                current = temporary; 
-                                //System.out.println(current.fullName);
-                            }  */
-                                
+                            }                                
                         }
                     }
                     System.out.println(current.fullName);
@@ -268,7 +261,7 @@ public class Menu implements Runnable{
             // replace with dir parser
             System.out.println("Enter the full path and name of the file you want to send");
             filename = parseDirectory(0);
-            if(cancel(filename)){
+            if(cancel(filename)||filename==null){
                 return;
             }
             if(filename.charAt(0)=='/'||filename.charAt(0)=='\\'){
@@ -276,6 +269,7 @@ public class Menu implements Runnable{
             }
             File f = new File(mc.getDirPermissions()+filename);
             if(!f.exists()||filename.contains("..")){
+                System.out.println(mc.getDirPermissions()+" "+filename);
                 System.out.println("Invalid file name or path");
             }else{
                 break;

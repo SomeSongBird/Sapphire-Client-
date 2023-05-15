@@ -36,7 +36,6 @@ public class Client{
         startableApps = new HashMap<String,String>();
         otherClients = new HashMap<Integer,String>();
         directories = readDirs();
-        
         authToken = sr.getString("ClientAuthToken");
         if(authToken.equals("")){
             System.err.println("Authorization token not set, create a new token in configuration.");
@@ -67,8 +66,10 @@ public class Client{
         HashMap<Integer,String> forReturn = new HashMap<Integer,String>();
         File dir = new File(externalDirectoryFilesPath);
         if(dir.exists()&&dir.isDirectory()){
+            System.out.println("found directory");
             for(File file : dir.listFiles()){
-                String[] name_extention = file.getName().split(".");
+                System.out.println("found: "+file.getName());
+                String[] name_extention = file.getName().split("\\.");
                 if(name_extention.length>1){
                     if(name_extention[1].equals("dir")){
                         try{
@@ -197,19 +198,24 @@ public class Client{
     
     public MockDir readExternDir(int id){
         try {
-            File f = new File(directories.get(id));
+            String filename = directories.get(id);
+            if(filename==null) System.out.println("filename not found");
+            File f = new File(filename);
             if(f.exists()){
                 String[] sDirStruct = new String[0];
                 Scanner scan = new Scanner(new FileInputStream(f));
                 while(scan.hasNext()){
-                    append(sDirStruct,scan.nextLine());
+                    String line = scan.nextLine();
+                    if(line!="") sDirStruct = append(sDirStruct,line);
                 }
                 if(sDirStruct.length>0){
                     return new MockDir(sDirStruct);
                 }
+            }else{
+                System.out.printf("No file found: %d|%s\n",id,f.getName());
             }
         } catch (Exception e) {
-            System.out.println("Error reading external directory file");
+            System.out.println("Error reading external directory file: "+e.getMessage());
         } 
         return null;
     }
@@ -383,6 +389,7 @@ public class Client{
                         System.out.println("Writing directory error "+e.getMessage());
                         return;
                     }
+                    System.out.printf("ID: %d| fName: %s\n",target_client,fName);
                     directories.put(target_client, fName);
                 }else{
                     System.out.println("Directory request error on update");
