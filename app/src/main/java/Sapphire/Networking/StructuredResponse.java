@@ -3,10 +3,10 @@ package Sapphire.Networking;
 //#region imports
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Scanner;
 import java.util.regex.*;
 import java.io.*;
 import java.net.HttpURLConnection;
+import Sapphire.StringReader;
 //#endregion imports
 
 public class StructuredResponse {
@@ -19,27 +19,36 @@ public class StructuredResponse {
     public StructuredResponse(HttpURLConnection res){
         String sResponseBody = "";
         InputStream connectionInput = null;
+        File temporaryFile = new File(StringReader.getString("TemporaryFilePath")+ (fileID++) +".tmp");
         try{
             status = res.getResponseCode();
             if(status==200){
+                temporaryFile.createNewFile();
                 connectionInput = res.getInputStream();
                 taskID = Integer.parseInt(res.getHeaderField("taskID"));
-                //System.out.println(taskID);
-                Scanner scan = new Scanner(connectionInput);
                 
-                String line;
-                while(scan.hasNext()){
-                    line = scan.next();
-                    sResponseBody += "\n"+line;
+                BufferedInputStream bufferedInputStream = new BufferedInputStream(connectionInput);
+                FileOutputStream temporaryFileOutput = new FileOutputStream(temporaryFile);
+
+                byte[] buffer = new byte[1024];
+                int len;
+                while((len=bufferedInputStream.read(buffer))>=0){
+                    sResponseBody += new String(buffer);
+                    temporaryFileOutput.write(buffer, 0, len);
                 }
-                scan.close();
+                bufferedInputStream.close();
+                temporaryFileOutput.close();
+            }else{
+                System.out.println("Response code: "+status);
             }
         }catch(Exception e){
             System.out.println("Structured Response Error: "+e.getMessage());
+            temporaryFile.delete();
             isEmpty = true;
             return;
         }
         if(sResponseBody.equals("")||sResponseBody.equals("None")){
+            temporaryFile.delete();
             isEmpty = true;
             return;
         }
@@ -47,19 +56,24 @@ public class StructuredResponse {
         //System.out.println(sResponseBody);
         String[] sregions = getRegionNames(sResponseBody);
         if(sregions.length==0){
+            temporaryFile.delete();
             isEmpty = true;
             return;
         }
         regions = new HashMap<String,String>();
+        //System.out.println(sregions.length);
         for(String regionName : sregions){
+            //System.out.println("regionName : "+ regionName);
             // place the regions into the details to be indexed
             if(regionName.equals("File")){
                 // files are stored in a temporary file and what's stored is the file location
-                regions.put("file_location","/temporary_files/"+(fileID++)+".tmp");
-                File temp_file = new File(regions.get("file_location"));
+                regions.put("file_location",(fileID++)+".tmp");
+                String tempFileLocation = StringReader.getString("TemporaryFilePath")+ regions.get("file_location");
+                //System.out.println("tempFileLocation: "+tempFileLocation);
+                File temp_file = new File(tempFileLocation);
                 try{
-                    res.getInputStream().reset();
-                    BufferedInputStream bufferedInputStream = new BufferedInputStream(res.getInputStream());
+                    temp_file.createNewFile();
+                    BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(temporaryFile));
                     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(temp_file));
 
                     byte[] buffer = new byte[1024];
@@ -91,10 +105,17 @@ public class StructuredResponse {
                     bufferedOutputStream.close();
                     bufferedInputStream.close();
                 } //the file will not exist but java will yell at me if the errors aren't handled
-                catch(Exception e){}
+                catch(Exception e){
+                    System.out.println("Structured Response File Error: "+e.getMessage());
+                    temporaryFile.delete();
+                }
             }else{
                 regions.put(regionName, findRegionBody(sResponseBody,regionName));
             }
+        }
+    
+        if(temporaryFile.exists()){
+            temporaryFile.delete();
         }
     }
 
@@ -102,18 +123,32 @@ public class StructuredResponse {
 
 
     private String[] getRegionNames(String input){
+        //System.out.println(input);
         String[] regionNames = new String[0];
         // placing the body into a usable form based on the regions they're in
-        Pattern regionPattern = Pattern.compile("<(.)*>(.)*<\\/(.)*>");
+        Pattern regionPattern = Pattern.compile("<([^>]*)>");
+        Matcher matcher = regionPattern.matcher(input);
+
+        while(matcher.find()){
+            String name = input.substring(matcher.start()+1, matcher.end()-1);
+            //System.out.println("Region: "+name);
+            Pattern closingPattern = Pattern.compile("<\\/"+name+">");
+            Matcher secondary = closingPattern.matcher(input);
+            if(secondary.find(matcher.end())){
+                regionNames = append(regionNames,name);
+            }
+        }
+        
+        /* Pattern regionPattern = Pattern.compile("<(.*)>(.|\\n)*<\\/\\1>");
         Matcher matcher = regionPattern.matcher(input);
         
         // find a full region
         while(matcher.find()){
             String region = input.substring(matcher.start(),matcher.end()); // get a string of just that region
             String regionName = region.substring(region.indexOf("<")+1,region.indexOf(">")); 
-            //System.out.println(regionName);
+            //System.out.println("region : "+ region);
             regionNames = append(regionNames,regionName);
-        }
+        } */
         return regionNames;
     }
 
@@ -125,18 +160,18 @@ public class StructuredResponse {
     }
 
     private String findRegionBody(String input, String regionName){
-        Pattern regionPattern = Pattern.compile("<"+regionName+">(.)*<\\/"+regionName+">");
-        Matcher matcher = regionPattern.matcher(input);
+        Pattern startPattern = Pattern.compile("<"+regionName+">");
+        Pattern endPattern = Pattern.compile("<\\/"+regionName+">");
+        Matcher startMatcher = startPattern.matcher(input);
+        Matcher endMatcher = endPattern.matcher(input);
         // find a full region
-        if(matcher.find()){
-            String region = input.substring(matcher.start(),matcher.end()); // get a string of just that region
-            Pattern pat = Pattern.compile("<\\/*"+regionName+">"); 
-            Matcher mat = pat.matcher(region);
-            mat.find();
-            int start = mat.end();
-            mat.find();
-            int end = mat.start();
-            return region.substring(start,end);
+        if(startMatcher.find()){
+            int start = startMatcher.end()+2; // +2 because every region name ends with \r\n
+            endMatcher.find();
+            int end = endMatcher.start()-2; // -2 because every region name begins with \r\n
+            String body = input.substring(start,end);
+            //System.out.println(body);
+            return body;
         }else{
             return "error";
         }

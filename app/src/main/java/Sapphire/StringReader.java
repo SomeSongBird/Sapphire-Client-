@@ -73,7 +73,7 @@ public class StringReader {
         }
         inputReader.close();
     }
-    public String getString(String stringName){
+    public static String getString(String stringName){
         return strings.get(stringName);
     }
 

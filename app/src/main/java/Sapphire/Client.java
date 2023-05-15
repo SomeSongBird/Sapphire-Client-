@@ -99,7 +99,7 @@ public class Client{
         }
 
         public void addRegion(String regionName, String regionBody){
-            String newRegion = "<"+regionName+">"+regionBody+"</"+regionName+">\r\n";
+            String newRegion = "<"+regionName+">\r\n"+regionBody+"\r\n</"+regionName+">\r\n";
             byte[] newRegionBytes = newRegion.getBytes();
             try(BufferedOutputStream requestBody = new BufferedOutputStream(new FileOutputStream(new File(temporaryFileString),true));
             ){
@@ -113,8 +113,8 @@ public class Client{
         }
 
         public void addfile(String pathToFile){
-            byte[] startRegion = "<File>".getBytes();
-            byte[] endRegion = "</File>\r\n".getBytes();
+            byte[] startRegion = "<File>\r\n".getBytes();
+            byte[] endRegion = "\r\n</File>\r\n".getBytes();
             File inputFile = null; 
             try(BufferedOutputStream requestBody = new BufferedOutputStream(new FileOutputStream(new File(temporaryFileString),true));
             ){
@@ -167,8 +167,8 @@ public class Client{
             connection.setRequestMethod("POST");
             connection.setDoOutput(true);
             connection.setRequestProperty("authToken", authToken);
-            connection.setRequestProperty("taskID", taskID+"");
-            connection.setRequestProperty("targetID", targetID+"");
+            connection.setRequestProperty("taskID", String.valueOf(taskID));
+            connection.setRequestProperty("targetID", String.valueOf(targetID));
             if(requestBody!=null){
                 OutputStream output = connection.getOutputStream();
                 BufferedOutputStream bos = new BufferedOutputStream(output);
@@ -308,6 +308,7 @@ public class Client{
                 if((regionBody = sRes.regions.get("confirmation"))!=null){
                     System.out.println("file recieved");
                 }else if((regionBody = sRes.regions.get("final_path"))!=null){
+                    System.out.println("Placing file");
                     // read file and place in final path location
                     String temporaryFile=null;
                     if((temporaryFile=sRes.regions.get("file_location"))==null){
@@ -350,7 +351,9 @@ public class Client{
                 }
             break;
             case "Directory":
+                System.out.println("Update: directory");
                 if((regionBody = sRes.regions.get("directory_request"))!=null){
+                    System.out.println("Sending...");
                     DirectoryWalker dw = new DirectoryWalker(authorizedDirectory);
                     RequestBuilder rb = new RequestBuilder(temporaryFileID++);
                     String fullDir = "";
@@ -359,8 +362,9 @@ public class Client{
                     }
                     rb.addRegion("directory_details",fullDir);
                     sendRequest("/update_directory/compliance", sRes.taskID, -1, rb);
-                    //System.out.println("sent dirs\n"+fullDir);
+                    System.out.println("Sent. "+sRes.taskID);
                 }else if((regionBody = sRes.regions.get("directory_details"))!=null){
+                    System.out.println("Receiving...");
                     // store the directory details with the ID and name of the device they're from 
                     int target_client = Integer.parseInt(sRes.regions.get("target_client"));
                     String fName = externalDirectoryFilesPath+target_client+".dir";
@@ -373,8 +377,8 @@ public class Client{
                         if((dir_structure = sRes.regions.get("directory_details"))!=null){
                             System.out.println(dir_structure);
                             Files.writeString(f.toPath(),dir_structure);
+                            System.out.println("Updated External Directory List");
                         }
-                        System.out.println("Updated External Directory List");
                     }catch(Exception e){
                         System.out.println("Writing directory error "+e.getMessage());
                         return;
