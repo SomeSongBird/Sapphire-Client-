@@ -271,8 +271,6 @@ public class Client{
             path=path.substring(1,path.length());
         }
         File outfile = new File(authorizedDirectory+path);
-        System.out.println("destination: "+authorizedDirectory+path);
-        System.out.println("input: "+input.getPath());
         try{
             if(!input.exists()){
                 System.out.println("input file does not exist");
@@ -286,7 +284,6 @@ public class Client{
                 byte[] buffer = new byte[1024];
                 int len;
                 while((len=zis.read(buffer))>=0){
-                    System.out.write(buffer);
                     bos.write(buffer,0,len);
                 }
                 zent = zis.getNextEntry();
@@ -317,11 +314,9 @@ public class Client{
         String regionBody = null;
         switch(taskName){
             case "FileTransfer":
-                System.out.println("Transfer File");
                 if((regionBody = sRes.regions.get("confirmation"))!=null){
                     System.out.println("file recieved");
                 }else if((regionBody = sRes.regions.get("final_path"))!=null){
-                    System.out.println("Placing file");
                     // read file and place in final path location
                     String temporaryFile=null;
                     if((temporaryFile=sRes.regions.get("file_location"))==null){
@@ -329,12 +324,10 @@ public class Client{
                         return;
                     }
                     unzipFile(regionBody,temporaryFile);
-                    System.out.println("Sending confirmation");
                     RequestBuilder rb = new RequestBuilder(temporaryFileID++);
                     rb.addRegion("confirmation",regionBody);
                     //send confirmation;
                     sendRequest("/file_transfer/compliance", sRes.taskID, -1, rb);
-                    System.out.println("Confirmation sent");
                 }else if((regionBody = sRes.regions.get("requested_file_path"))!=null){
                     //zip file at location and send to server
                     if(regionBody.charAt(0)=='/'||regionBody.charAt(0)=='\\'){
@@ -366,9 +359,7 @@ public class Client{
                 }
             break;
             case "Directory":
-                System.out.println("Update: directory");
                 if((regionBody = sRes.regions.get("directory_request"))!=null){
-                    System.out.println("Sending...");
                     DirectoryWalker dw = new DirectoryWalker(authorizedDirectory);
                     RequestBuilder rb = new RequestBuilder(temporaryFileID++);
                     String fullDir = "";
@@ -377,9 +368,7 @@ public class Client{
                     }
                     rb.addRegion("directory_details",fullDir);
                     sendRequest("/update_directory/compliance", sRes.taskID, -1, rb);
-                    System.out.println("Sent. "+sRes.taskID);
                 }else if((regionBody = sRes.regions.get("directory_details"))!=null){
-                    System.out.println("Receiving...");
                     // store the directory details with the ID and name of the device they're from 
                     int target_client = Integer.parseInt(sRes.regions.get("target_client"));
                     String fName = externalDirectoryFilesPath+target_client+".dir";
@@ -398,7 +387,6 @@ public class Client{
                         System.out.println("Writing directory error "+e.getMessage());
                         return;
                     }
-                    System.out.printf("ID: %d| fName: %s\n",target_client,fName);
                     directories.put(target_client, fName);
                 }else{
                     System.out.println("Directory request error on update");
