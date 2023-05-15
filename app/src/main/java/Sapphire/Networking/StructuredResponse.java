@@ -39,7 +39,7 @@ public class StructuredResponse {
                 bufferedInputStream.close();
                 temporaryFileOutput.close();
             }else{
-                System.out.println("Response code: "+status);
+                //System.out.println("Response code: "+status);
             }
         }catch(Exception e){
             System.out.println("Structured Response Error: "+e.getMessage());
