@@ -44,7 +44,7 @@ public class StructuredResponse {
             return;
         }
         
-        System.out.println(sResponseBody);
+        //System.out.println(sResponseBody);
         String[] sregions = getRegionNames(sResponseBody);
         if(sregions.length==0){
             isEmpty = true;

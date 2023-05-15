@@ -98,7 +98,7 @@ public class Client{
             }
         }
 
-        public void addRegion(String regionName,String regionBody){
+        public void addRegion(String regionName, String regionBody){
             String newRegion = "<"+regionName+">"+regionBody+"</"+regionName+">\r\n";
             byte[] newRegionBytes = newRegion.getBytes();
             try(BufferedOutputStream requestBody = new BufferedOutputStream(new FileOutputStream(new File(temporaryFileString),true));
@@ -114,7 +114,7 @@ public class Client{
 
         public void addfile(String pathToFile){
             byte[] startRegion = "<File>".getBytes();
-            byte[] endRegion = "</File>".getBytes();
+            byte[] endRegion = "</File>\r\n".getBytes();
             File inputFile = null; 
             try(BufferedOutputStream requestBody = new BufferedOutputStream(new FileOutputStream(new File(temporaryFileString),true));
             ){
