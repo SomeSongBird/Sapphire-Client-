@@ -29,7 +29,7 @@ public class StructuredResponse {
                 String line;
                 while(scan.hasNext()){
                     line = scan.next();
-                    sResponseBody += line;
+                    sResponseBody += "\n"+line;
                 }
                 scan.close();
             }
@@ -43,6 +43,7 @@ public class StructuredResponse {
             return;
         }
         
+        //System.out.println(sResponseBody);
         String[] sregions = getRegionNames(sResponseBody);
         if(sregions.length==0){
             isEmpty = true;
@@ -109,6 +110,7 @@ public class StructuredResponse {
         while(matcher.find()){
             String region = input.substring(matcher.start(),matcher.end()); // get a string of just that region
             String regionName = region.substring(region.indexOf("<")+1,region.indexOf(">")); 
+            //System.out.println(regionName);
             regionNames = append(regionNames,regionName);
         }
         return regionNames;

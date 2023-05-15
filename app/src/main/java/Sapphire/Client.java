@@ -295,6 +295,7 @@ public class Client{
         StructuredResponse sRes = sendRequest("/update", -1,-1, null); //writes file(if any) to local storage and returns path to temporary file under file_location
         if(sRes.status!=200){
             connected = false;
+            System.out.println(sRes.status);
             return;
         }
         connected = true;
@@ -357,7 +358,7 @@ public class Client{
                         fullDir+=dir+"\n";
                     }
                     rb.addRegion("directory_details",fullDir);
-                    sendRequest(serverURL+"/update_directory/compliance", sRes.taskID, -1, rb);
+                    sendRequest("/update_directory/compliance", sRes.taskID, -1, rb);
                 }else if((regionBody = sRes.regions.get("directory_details"))!=null){
                     // store the directory details with the ID and name of the device they're from 
                     int target_client = Integer.parseInt(sRes.regions.get("target_client"));
