@@ -24,6 +24,7 @@ public class StructuredResponse {
             if(status==200){
                 connectionInput = res.getInputStream();
                 taskID = Integer.parseInt(res.getHeaderField("taskID"));
+                //System.out.println(taskID);
                 Scanner scan = new Scanner(connectionInput);
                 
                 String line;
@@ -43,7 +44,7 @@ public class StructuredResponse {
             return;
         }
         
-        //System.out.println(sResponseBody);
+        System.out.println(sResponseBody);
         String[] sregions = getRegionNames(sResponseBody);
         if(sregions.length==0){
             isEmpty = true;

@@ -186,7 +186,7 @@ public class Client{
             sRes = new StructuredResponse((connection));
             connection.disconnect();
         }catch(Exception e){
-            System.out.println(e.getMessage());
+            System.out.println("SendMessage Error "+e.getMessage());
             //log
         }
         finally{
@@ -284,7 +284,7 @@ public class Client{
 
             input.delete();
         }catch(IOException e){
-            System.err.println(e.getMessage());
+            System.err.println("Unzip file Error "+e.getMessage());
         }
     }
     //#endregion fileZippers
@@ -359,6 +359,7 @@ public class Client{
                     }
                     rb.addRegion("directory_details",fullDir);
                     sendRequest("/update_directory/compliance", sRes.taskID, -1, rb);
+                    //System.out.println("sent dirs\n"+fullDir);
                 }else if((regionBody = sRes.regions.get("directory_details"))!=null){
                     // store the directory details with the ID and name of the device they're from 
                     int target_client = Integer.parseInt(sRes.regions.get("target_client"));
@@ -373,8 +374,9 @@ public class Client{
                             System.out.println(dir_structure);
                             Files.writeString(f.toPath(),dir_structure);
                         }
+                        System.out.println("Updated External Directory List");
                     }catch(Exception e){
-                        
+                        System.out.println("Writing directory error "+e.getMessage());
                         return;
                     }
                     directories.put(target_client, fName);

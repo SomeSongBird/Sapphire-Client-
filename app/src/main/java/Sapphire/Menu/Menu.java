@@ -127,7 +127,7 @@ public class Menu implements Runnable{
                 System.out.println("Enter the number of your action:");
                 System.out.println("\t1. Transfer File");
                 System.out.println("\t2. Start Remote Application");
-                System.out.println("\t3. Refersh Directories");
+                System.out.println("\t3. Refresh Directories");
                 System.out.println("\t4. Configuration");
                 System.out.println("\t5. Refresh");
                 printMenu = false;
