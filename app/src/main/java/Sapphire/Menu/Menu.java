@@ -5,13 +5,9 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.Scanner;
-
-import org.checkerframework.checker.units.qual.Temperature;
-
 import Sapphire.*;
+import Sapphire.Utilities.*;
 //#endregion imports
-import Sapphire.Utilities.DirectoryWalker;
-import Sapphire.Utilities.MockDir;
 
 public class Menu implements Runnable{
     //#region init
