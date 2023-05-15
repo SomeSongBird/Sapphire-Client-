@@ -205,7 +205,7 @@ public class Client{
                     append(sDirStruct,scan.nextLine());
                 }
                 if(sDirStruct.length>0){
-                    return new MockDir(sDirStruct,null);
+                    return new MockDir(sDirStruct);
                 }
             }
         } catch (Exception e) {

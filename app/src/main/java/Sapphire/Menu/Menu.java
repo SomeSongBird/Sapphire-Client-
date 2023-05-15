@@ -5,6 +5,9 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.Scanner;
+
+import org.checkerframework.checker.units.qual.Temperature;
+
 import Sapphire.*;
 //#endregion imports
 import Sapphire.Utilities.DirectoryWalker;
@@ -34,7 +37,7 @@ public class Menu implements Runnable{
     }
 
     private String getUserInput(){
-        String in = userInput.next();
+        String in = userInput.nextLine();
         return in;
     }
 
@@ -66,7 +69,7 @@ public class Menu implements Runnable{
  */
         if(id==0){
             DirectoryWalker walker = new DirectoryWalker(mc.getDirPermissions());
-            topDir = new MockDir(walker.fileStructure,null);
+            topDir = new MockDir(walker.fileStructure);
         }else{
             topDir = mc.readExternDir(id);
         }
@@ -78,26 +81,42 @@ public class Menu implements Runnable{
         while(true){
             input = getUserInput().strip();
             if(cancel(input)) return null;
-            String[] splitInput = input.split(" ");
+            String[] splitInput = input.split(" ",2);
             switch(splitInput[0]){
                 case "ls":
                     System.out.println(current);
                     break;
                 case "cd":
-                    if(splitInput.equals("..")){
-                        current = current.parent;
-                    }else{
-                        current = current.getNextDir(splitInput[1]);
+                    if(splitInput.length>1){
+                        //System.out.println(splitInput[1]);
+                        if(splitInput[1].equals("..")){
+                            current = current.parent;
+                        }else {
+                            for(MockDir temporary : current.nextLayer){
+                                if(temporary.name.equals(splitInput[1])&&temporary.isDirectory()){
+                                    current = temporary;
+                                }
+                            }
+                            /* MockDir temporary = current.getNextDir(splitInput[1]);
+                            //System.out.println(temporary.fullName);
+                            if(temporary.isDirectory()||true){
+                                current = temporary; 
+                                //System.out.println(current.fullName);
+                            }  */
+                                
+                        }
                     }
                     System.out.println(current.fullName);
                     break;
                 case "select":
-                    MockDir temporary = current.getNextDir(splitInput[1]);
-                    if(temporary != current && temporary.nextLayer.length == 0){
-                        return temporary.fullName;
-                    }else{
-                        System.out.println("unable to return that directory");
-                    }
+                    if(splitInput.length>1){
+                        MockDir temporary = current.getNextDir(splitInput[1]);
+                        if(!temporary.isDirectory()){
+                            return temporary.getPath();
+                        }else{
+                            System.out.println("unable to return that directory");
+                        }
+                    }    
             }
         }
     }
@@ -270,8 +289,7 @@ public class Menu implements Runnable{
             System.out.println("Selected device: "+deviceID);
             // replace with dir parser
             System.out.println("Enter the full path and name of the file you want to send");
-            System.out.print(mc.getDirPermissions());
-            filename = getUserInput();
+            filename = parseDirectory(0);
             if(cancel(filename)){
                 return;
             }
