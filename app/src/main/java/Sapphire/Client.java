@@ -184,7 +184,11 @@ public class Client{
                 bos.close();
                 requestBody.close();
             }
-            sRes = new StructuredResponse((connection));
+            if(connection.getResponseCode()>0){
+                sRes = new StructuredResponse((connection));
+            }else{
+                sRes = null;
+            }
             connection.disconnect();
         }catch(Exception e){
             System.out.println("SendMessage Error "+e.getMessage());
@@ -302,9 +306,11 @@ public class Client{
     
     public void update(){
         StructuredResponse sRes = sendRequest("/update", -1,-1, null); //writes file(if any) to local storage and returns path to temporary file under file_location
-        if(sRes.status!=200){
+        if(sRes==null){
             connected = false;
-            if(sRes.status!=401 || sRes.status!=0) System.out.println(sRes.status); //unauthorized or no connection
+        }else if(sRes.status!=200){
+            connected = false;
+            if(sRes.status!=401) System.out.println(sRes.status); //unauthorized or no connection
             return;
         }
         connected = true;
