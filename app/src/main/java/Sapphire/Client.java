@@ -15,6 +15,7 @@ import Sapphire.Networking.StructuredResponse;
 public class Client{
     //#region init
     public boolean connected = false;
+    boolean connectionInProgress = false;
     String authToken;
     String authorizedDirectory;
     int temporaryFileID = 0;
@@ -163,7 +164,13 @@ public class Client{
         if(requestBuilder!=null){
             requestBody = requestBuilder.getInputStream();
         }
+        while(connectionInProgress){
+            System.out.println("overlapping connection");
+            try{Thread.sleep(100);}
+            catch(Exception e){}
+        }
         try{
+            connectionInProgress = true;
             connection = (HttpURLConnection) new URL(serverURL+url).openConnection();
             connection.setRequestMethod("POST");
             connection.setDoOutput(true);
@@ -195,6 +202,7 @@ public class Client{
             //log
         }
         finally{
+            connectionInProgress = false;
             if(requestBuilder!=null) requestBuilder.closeRequest();
         }
         return sRes;
@@ -324,7 +332,7 @@ public class Client{
                     System.out.println("file recieved");
                 }else if((regionBody = sRes.regions.get("final_path"))!=null){
                     // read file and place in final path location
-                    System.out.println("Received "+regionBody+ "from another client");
+                    System.out.println("Received "+regionBody+ " from another client");
                     String temporaryFile=null;
                     if((temporaryFile=sRes.regions.get("file_location"))==null){
                         //log failure
