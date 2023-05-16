@@ -324,6 +324,7 @@ public class Client{
                     System.out.println("file recieved");
                 }else if((regionBody = sRes.regions.get("final_path"))!=null){
                     // read file and place in final path location
+                    System.out.println("Received "+regionBody+ "from another client");
                     String temporaryFile=null;
                     if((temporaryFile=sRes.regions.get("file_location"))==null){
                         //log failure
@@ -335,6 +336,8 @@ public class Client{
                     //send confirmation;
                     sendRequest("/file_transfer/compliance", sRes.taskID, -1, rb);
                 }else if((regionBody = sRes.regions.get("requested_file_path"))!=null){
+                    System.out.println("sending file: "+regionBody);
+
                     //zip file at location and send to server
                     if(regionBody.charAt(0)=='/'||regionBody.charAt(0)=='\\'){
                         regionBody=regionBody.substring(1,regionBody.length());
@@ -344,15 +347,16 @@ public class Client{
                         try{
                             rb.addfile(regionBody);
                         }catch(Exception e){
-                            //log
+                            System.out.println("problem adding file to request builder");
                             return;
                         }
 
                         // send zip file
                         sendRequest("/file_transfer/compliance", sRes.taskID, -1, rb);
+                        System.out.println("file sent");
                         return;
                     }else{
-                        // log error
+                        System.out.println("file not found");
                         return;
                     }
                 }else{
@@ -377,6 +381,7 @@ public class Client{
                 }else if((regionBody = sRes.regions.get("directory_details"))!=null){
                     // store the directory details with the ID and name of the device they're from 
                     int target_client = Integer.parseInt(sRes.regions.get("target_client"));
+                    System.out.println("Received the file structure of client "+target_client);
                     String fName = externalDirectoryFilesPath+target_client+".dir";
                     File f = new File(fName);
                     try{
