@@ -124,7 +124,7 @@ public class StructuredResponse {
         //System.out.println(input);
         String[] regionNames = new String[0];
         // placing the body into a usable form based on the regions they're in
-        Pattern regionPattern = Pattern.compile("<([^\\/>]*)>");
+        Pattern regionPattern = Pattern.compile("<(\\w*)>");
         Matcher matcher = regionPattern.matcher(input);
 
         while(matcher.find()){
