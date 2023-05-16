@@ -43,7 +43,7 @@ public class StructuredResponse {
                 //System.out.println("Response code: "+status);
             }
         }catch(Exception e){
-            System.out.println("Structured Response Error: "+e.getMessage());
+            System.out.println("Structured Response Error: "+e);
             temporaryFile.delete();
             isEmpty = true;
             return;
@@ -136,17 +136,6 @@ public class StructuredResponse {
                 regionNames = append(regionNames,name);
             }
         }
-        
-        /* Pattern regionPattern = Pattern.compile("<(.*)>(.|\\n)*<\\/\\1>");
-        Matcher matcher = regionPattern.matcher(input);
-        
-        // find a full region
-        while(matcher.find()){
-            String region = input.substring(matcher.start(),matcher.end()); // get a string of just that region
-            String regionName = region.substring(region.indexOf("<")+1,region.indexOf(">")); 
-            //System.out.println("region : "+ region);
-            regionNames = append(regionNames,regionName);
-        } */
         return regionNames;
     }
 
