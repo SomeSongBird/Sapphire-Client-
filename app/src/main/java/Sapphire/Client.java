@@ -210,7 +210,7 @@ public class Client{
                 Scanner scan = new Scanner(new FileInputStream(f));
                 while(scan.hasNext()){
                     String line = scan.nextLine();
-                    if(line!="") sDirStruct = append(sDirStruct,line);
+                    if(!line.equals("")) sDirStruct = append(sDirStruct,line);
                 }
                 if(sDirStruct.length>0){
                     return new MockDir(sDirStruct);
