@@ -308,6 +308,7 @@ public class Client{
         StructuredResponse sRes = sendRequest("/update", -1,-1, null); //writes file(if any) to local storage and returns path to temporary file under file_location
         if(sRes==null){
             connected = false;
+            return;
         }else if(sRes.status!=200){
             connected = false;
             if(sRes.status!=401) System.out.println(sRes.status); //unauthorized or no connection
