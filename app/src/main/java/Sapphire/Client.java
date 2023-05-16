@@ -247,7 +247,6 @@ public class Client{
             byte[] bytes = new byte[1024];
             int length;
             while((length = fis.read(bytes)) > 0) {
-                System.out.write(bytes);
                 zOut.write(bytes, 0, length);
             }
 
@@ -379,9 +378,9 @@ public class Client{
                         }
                         String dir_structure = null;
                         if((dir_structure = sRes.regions.get("directory_details"))!=null){
-                            System.out.println(dir_structure);
+                            //System.out.println(dir_structure);
                             Files.writeString(f.toPath(),dir_structure);
-                            System.out.println("Updated External Directory List");
+                            //System.out.println("Updated External Directory List");
                         }
                     }catch(Exception e){
                         System.out.println("Writing directory error "+e.getMessage());

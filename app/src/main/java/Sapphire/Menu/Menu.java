@@ -212,6 +212,7 @@ public class Menu implements Runnable{
             System.out.println("Enter the full path and name of the file you want to pull");
             filename = parseDirectory(deviceID);
             if(filename==null) return;
+            System.out.println("filename: "+filename);
             break;
         }
         clearScreen();
@@ -257,9 +258,8 @@ public class Menu implements Runnable{
             // replace with dir parser
             System.out.println("Enter the full path and name of the file you want to send");
             filename = parseDirectory(0);
-            if(cancel(filename)||filename==null){
-                return;
-            }
+            if(filename==null) return;
+            System.out.println("filename: "+filename);
             if(filename.charAt(0)=='/'||filename.charAt(0)=='\\'){
                 filename=filename.substring(1,filename.length());
             }
