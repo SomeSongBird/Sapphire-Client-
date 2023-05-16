@@ -212,7 +212,7 @@ public class Menu implements Runnable{
             System.out.println("Enter the full path and name of the file you want to pull");
             filename = parseDirectory(deviceID);
             if(filename==null) return;
-            System.out.println("filename: "+filename);
+            //System.out.println("filename: "+filename);
             break;
         }
         clearScreen();
