@@ -210,7 +210,7 @@ public class Client{
                 Scanner scan = new Scanner(new FileInputStream(f));
                 while(scan.hasNext()){
                     String line = scan.nextLine();
-                    if(line!="") sDirStruct = append(sDirStruct,line);
+                    if(!line.equals("")) sDirStruct = append(sDirStruct,line);
                 }
                 if(sDirStruct.length>0){
                     return new MockDir(sDirStruct);
@@ -235,10 +235,10 @@ public class Client{
 
     private String zipfile(String filename){
         File infile = new File(authorizedDirectory+filename);
-        String outputFileName = temporaryFilePath+filename+".zip";
+        String outputFileName = temporaryFilePath+infile.getName()+".zip";
         File outfile = new File(outputFileName);
-        //System.out.println("tozip: "+authorizedDirectory+filename);
-        //System.out.println("zip: "+outputFileName);
+        System.out.println("tozip: "+authorizedDirectory+filename);
+        System.out.println("zip: "+outputFileName);
         
         try{
             outfile.createNewFile();
